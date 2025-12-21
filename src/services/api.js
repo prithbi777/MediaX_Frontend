@@ -76,14 +76,88 @@ export const videosAPI = {
       body: JSON.stringify({ title }),
     }),
 
-  upload: ({ title, file }) => {
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('video', file);
+  // Upload directly to Cloudinary, then save metadata to backend
+  upload: async ({ title, file, onProgress }) => {
+    // Get Cloudinary config from environment variables
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-    return apiRequest('/videos', {
-      method: 'POST',
-      body: formData,
+    if (!cloudName || !uploadPreset) {
+      throw new Error('Cloudinary configuration is missing. Please check your environment variables.');
+    }
+
+    // Generate a unique public ID
+    const publicId = crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
+    const folder = 'mediax/videos';
+    const resourceType = 'video';
+
+    // Step 2: Upload directly to Cloudinary
+    const cloudinaryFormData = new FormData();
+    cloudinaryFormData.append('file', file);
+    cloudinaryFormData.append('upload_preset', uploadPreset);
+    cloudinaryFormData.append('folder', folder);
+    cloudinaryFormData.append('public_id', publicId);
+    cloudinaryFormData.append('resource_type', resourceType);
+
+    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
+
+    // Upload to Cloudinary with progress tracking
+    const xhr = new XMLHttpRequest();
+
+    return new Promise((resolve, reject) => {
+      // Track upload progress if callback provided
+      if (onProgress) {
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            onProgress(percentComplete);
+          }
+        });
+      }
+
+      xhr.addEventListener('load', async () => {
+        if (xhr.status === 200) {
+          try {
+            const cloudinaryResult = JSON.parse(xhr.responseText);
+            
+            // Step 3: Save metadata to backend
+            const saveResponse = await apiRequest('/videos/save', {
+              method: 'POST',
+              body: JSON.stringify({
+                title,
+                videoUrl: cloudinaryResult.secure_url,
+                publicId: cloudinaryResult.public_id,
+                duration: cloudinaryResult.duration || 0,
+              }),
+            });
+
+            resolve(saveResponse);
+          } catch (error) {
+            reject(new Error('Failed to save video metadata: ' + error.message));
+          }
+        } else {
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            reject(new Error(errorData.error?.message || 'Upload failed'));
+          } catch {
+            reject(new Error('Upload failed with status: ' + xhr.status));
+          }
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Network error during upload'));
+      });
+
+      xhr.addEventListener('abort', () => {
+        reject(new Error('Upload cancelled'));
+      });
+
+      xhr.open('POST', cloudinaryUrl);
+      xhr.send(cloudinaryFormData);
     });
   },
 
