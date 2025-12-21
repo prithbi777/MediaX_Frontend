@@ -41,6 +41,7 @@ const apiRequest = async (endpoint, options = {}) => {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
+    credentials: 'include', // Required for CORS with credentials
   });
 
   const data = await response.json();
