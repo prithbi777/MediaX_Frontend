@@ -13,6 +13,7 @@ function ManageMedia() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [deletingId, setDeletingId] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const [editTitle, setEditTitle] = useState('')
@@ -78,13 +79,22 @@ function ManageMedia() {
     }
 
     setUploading(true)
+    setUploadProgress(0)
     try {
-      await videosAPI.upload({ title: title.trim(), file })
+      await videosAPI.upload({ 
+        title: title.trim(), 
+        file,
+        onProgress: (progress) => {
+          setUploadProgress(progress)
+        }
+      })
       setTitle('')
       setFile(null)
+      setUploadProgress(0)
       await fetchVideos()
     } catch (err) {
       setError(err.message || 'Upload failed')
+      setUploadProgress(0)
     } finally {
       setUploading(false)
     }
@@ -182,6 +192,30 @@ function ManageMedia() {
             </button>
           </div>
         </form>
+        {uploading && (
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                {uploadProgress < 90 ? 'Uploading to Cloudinary...' : uploadProgress < 100 ? 'Saving metadata...' : 'Upload complete!'}
+              </span>
+              <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                {Math.round(uploadProgress)}%
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden shadow-inner">
+              <div
+                className="bg-gradient-to-r from-indigo-500 to-indigo-600 h-3 rounded-full transition-all duration-300 ease-out flex items-center justify-end pr-1"
+                style={{ width: `${uploadProgress}%` }}
+              >
+                {uploadProgress > 10 && (
+                  <span className="text-[10px] text-white font-medium">
+                    {Math.round(uploadProgress)}%
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {loading ? (

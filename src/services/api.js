@@ -109,10 +109,13 @@ export const videosAPI = {
 
     return new Promise((resolve, reject) => {
       // Track upload progress if callback provided
+      // Map Cloudinary upload progress to 0-90% (backend save will be 90-100%)
       if (onProgress) {
         xhr.upload.addEventListener('progress', (e) => {
           if (e.lengthComputable) {
-            const percentComplete = (e.loaded / e.total) * 100;
+            const cloudinaryProgress = (e.loaded / e.total) * 100;
+            // Map to 0-90% range
+            const percentComplete = (cloudinaryProgress * 0.9);
             onProgress(percentComplete);
           }
         });
@@ -121,9 +124,19 @@ export const videosAPI = {
       xhr.addEventListener('load', async () => {
         if (xhr.status === 200) {
           try {
+            // Update progress to 90% when Cloudinary upload completes
+            if (onProgress) {
+              onProgress(90);
+            }
+
             const cloudinaryResult = JSON.parse(xhr.responseText);
             
             // Step 3: Save metadata to backend
+            // Update progress to 95% when starting backend save
+            if (onProgress) {
+              onProgress(95);
+            }
+
             const saveResponse = await apiRequest('/videos/save', {
               method: 'POST',
               body: JSON.stringify({
@@ -133,6 +146,11 @@ export const videosAPI = {
                 duration: cloudinaryResult.duration || 0,
               }),
             });
+
+            // Update progress to 100% when backend save completes
+            if (onProgress) {
+              onProgress(100);
+            }
 
             resolve(saveResponse);
           } catch (error) {
