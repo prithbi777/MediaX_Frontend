@@ -346,66 +346,67 @@ function Chatbot() {
   /* ===========================
      SEND MESSAGE
      =========================== */
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-
-    if (sendingRef.current) return;
-    if (!inputMessage.trim()) return;
-
-    if (!token) {
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: 'Please log in to use the chatbot.' },
-      ]);
-      return;
-    }
-
-    sendingRef.current = true;
-    setIsLoading(true);
-
-    const userMessage = inputMessage.trim();
-    setInputMessage('');
-
-    let updatedMessages;
-
-    // ✅ SAFE STATE UPDATE
-    setMessages(prev => {
-      updatedMessages = [...prev, { role: 'user', content: userMessage }];
-      return updatedMessages;
-    });
-
-    try {
-      const conversationHistory = updatedMessages
-        .slice(-6) // 🔥 MATCH BACKEND
-        .map(msg => ({
-          role: msg.role,
-          content: msg.content,
-        }));
-
-      const response = await chatbotAPI.chat({
-        message: userMessage,
-        conversationHistory: conversationHistory.slice(0, -1),
-      });
-
-      setMessages(prev => [
-        ...prev,
-        { role: 'assistant', content: response.response },
-      ]);
-    } catch (error) {
-      setMessages(prev => [
-        ...prev,
-        {
-          role: 'assistant',
-          content:
-            error.message ||
-            'Sorry, I encountered an issue. Please try again.',
-        },
-      ]);
-    } finally {
-      sendingRef.current = false;
-      setIsLoading(false);
-    }
-  };
+     const handleSendMessage = async (e) => {
+      e.preventDefault();
+    
+      if (sendingRef.current) return;
+      if (!inputMessage.trim()) return;
+    
+      if (!token) {
+        setMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: 'Please log in to use the chatbot.' },
+        ]);
+        return;
+      }
+    
+      sendingRef.current = true;
+      setIsLoading(true);
+    
+      const userMessage = inputMessage.trim();
+      setInputMessage('');
+    
+      // ✅ Build next messages synchronously (NO async dependency)
+      const nextMessages = [
+        ...messages,
+        { role: 'user', content: userMessage },
+      ];
+    
+      // Update UI immediately
+      setMessages(nextMessages);
+    
+      try {
+        const conversationHistory = nextMessages
+          .slice(-6) // safe now
+          .map(msg => ({
+            role: msg.role,
+            content: msg.content,
+          }));
+    
+        const response = await chatbotAPI.chat({
+          message: userMessage,
+          conversationHistory: conversationHistory.slice(0, -1),
+        });
+    
+        setMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: response.response },
+        ]);
+      } catch (error) {
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content:
+              error.message || 'Sorry, something went wrong. Please try again.',
+          },
+        ]);
+      } finally {
+        sendingRef.current = false;
+        setIsLoading(false);
+      }
+    };
+    
 
   /* ===========================
      CLEAR CHAT
