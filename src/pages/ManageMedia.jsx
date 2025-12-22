@@ -196,7 +196,7 @@ function ManageMedia() {
           <div className="mt-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
-                {uploadProgress < 90 ? 'Uploading to Cloudinary...' : uploadProgress < 100 ? 'Saving metadata...' : 'Upload complete!'}
+                {uploadProgress < 90 ? 'Uploading in progress...' : uploadProgress < 100 ? 'Saving metadata...' : 'Upload complete!'}
               </span>
               <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
                 {Math.round(uploadProgress)}%
