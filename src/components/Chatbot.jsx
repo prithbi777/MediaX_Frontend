@@ -306,211 +306,511 @@
 
 
 
+// //CHATGPT CODE
+// import { useState, useRef, useEffect } from 'react';
+// import { useAuth } from '../context/AuthContext';
+// import { chatbotAPI } from '../services/api';
 
+// function Chatbot() {
+//   const { token } = useAuth();
+
+//   const [isOpen, setIsOpen] = useState(false);
+//   const [messages, setMessages] = useState([
+//     {
+//       role: 'assistant',
+//       content: "Hello! I'm your AI assistant for MediaX. How can I help you today?",
+//     },
+//   ]);
+//   const [inputMessage, setInputMessage] = useState('');
+//   const [isLoading, setIsLoading] = useState(false);
+
+//   const messagesEndRef = useRef(null);
+//   const inputRef = useRef(null);
+
+//   /* =======================
+//      AUTO SCROLL
+//      ======================= */
+//   useEffect(() => {
+//     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+//   }, [messages]);
+
+//   /* =======================
+//      AUTO FOCUS
+//      ======================= */
+//   useEffect(() => {
+//     if (isOpen) {
+//       setTimeout(() => inputRef.current?.focus(), 100);
+//     }
+//   }, [isOpen]);
+
+//   /* =======================
+//      SEND MESSAGE
+//      ======================= */
+//   const handleSendMessage = async (e) => {
+//     e.preventDefault();
+//     if (!inputMessage.trim() || isLoading) return;
+
+//     if (!token) {
+//       setMessages(prev => [
+//         ...prev,
+//         { role: 'assistant', content: 'Please log in to use the chatbot.' },
+//       ]);
+//       return;
+//     }
+
+//     const userMessage = inputMessage.trim();
+//     setInputMessage('');
+//     setIsLoading(true);
+
+//     const nextMessages = [...messages, { role: 'user', content: userMessage }];
+//     setMessages(nextMessages);
+
+//     try {
+//       const conversationHistory = nextMessages.slice(-6).map(m => ({
+//         role: m.role,
+//         content: m.content,
+//       }));
+
+//       const response = await chatbotAPI.chat({
+//         message: userMessage,
+//         conversationHistory: conversationHistory.slice(0, -1),
+//       });
+
+//       setMessages(prev => [
+//         ...prev,
+//         { role: 'assistant', content: response.response },
+//       ]);
+//     } catch (err) {
+//       setMessages(prev => [
+//         ...prev,
+//         { role: 'assistant', content: 'AI is busy. Please try again.' },
+//       ]);
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   const handleClearChat = () => {
+//     setMessages([
+//       {
+//         role: 'assistant',
+//         content: "Hello! I'm your AI assistant for MediaX. How can I help you today?",
+//       },
+//     ]);
+//   };
+
+//   return (
+//     <>
+//       {/* CHAT WINDOW */}
+//       {isOpen && (
+//         <div
+//           className="
+//             fixed z-50 bg-white dark:bg-slate-900 flex flex-col
+//             inset-0 sm:inset-auto
+//             sm:bottom-24 sm:right-6
+//             w-full sm:w-96
+//             h-full sm:h-[600px]
+//             sm:rounded-2xl
+//             shadow-2xl border border-gray-200 dark:border-slate-700
+//           "
+//         >
+//           {/* HEADER */}
+//           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 sm:rounded-t-2xl">
+//             <div>
+//               <h3 className="text-white font-semibold">AI Assistant</h3>
+//               <p className="text-indigo-100 text-xs">MediaX Support</p>
+//             </div>
+//             <div className="flex gap-3">
+//               <button onClick={handleClearChat} className="text-white text-lg">
+//                 🗑
+//               </button>
+//               <button onClick={() => setIsOpen(false)} className="text-white text-lg">
+//                 ✕
+//               </button>
+//             </div>
+//           </div>
+
+//           {/* MESSAGES */}
+//           <div className="flex-1 overflow-y-auto p-4 space-y-4">
+//             {messages.map((msg, i) => (
+//               <div
+//                 key={i}
+//                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+//               >
+//                 <div
+//                   className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm ${
+//                     msg.role === 'user'
+//                       ? 'bg-indigo-600 text-white'
+//                       : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100'
+//                   }`}
+//                 >
+//                   {msg.content}
+//                 </div>
+//               </div>
+//             ))}
+
+//             {isLoading && (
+//               <div className="text-sm text-gray-500">AI is typing…</div>
+//             )}
+
+//             <div ref={messagesEndRef} />
+//           </div>
+
+//           {/* INPUT (Sticky on mobile) */}
+//           <form
+//             onSubmit={handleSendMessage}
+//             className="
+//               p-3 border-t border-gray-200 dark:border-slate-700
+//               sticky bottom-0 bg-white dark:bg-slate-900
+//             "
+//           >
+//             <div className="flex gap-2">
+//               <input
+//                 ref={inputRef}
+//                 value={inputMessage}
+//                 onChange={e => setInputMessage(e.target.value)}
+//                 placeholder="Type your message…"
+//                 disabled={isLoading}
+//                 className="
+//                   flex-1 px-4 py-2 rounded-lg border
+//                   bg-white dark:bg-slate-800
+//                   focus:ring-2 focus:ring-indigo-500
+//                 "
+//               />
+//               <button
+//                 type="submit"
+//                 disabled={!inputMessage.trim() || isLoading}
+//                 className="
+//                   bg-indigo-600 text-white px-4 py-2 rounded-lg
+//                   disabled:opacity-50
+//                 "
+//               >
+//                 ➤
+//               </button>
+//             </div>
+//           </form>
+//         </div>
+//       )}
+
+//       {/* FLOATING BUTTON */}
+//       <button
+//         onClick={() => setIsOpen(prev => !prev)}
+//         className="
+//           fixed bottom-6 right-6 z-40
+//           w-14 h-14 sm:w-16 sm:h-16
+//           bg-gradient-to-r from-indigo-500 to-indigo-600
+//           text-white rounded-full shadow-lg
+//           flex items-center justify-center
+//           hover:scale-110 transition
+//         "
+//       >
+//         🤖
+//       </button>
+//     </>
+//   );
+// }
+
+// export default Chatbot;
+
+
+
+
+
+
+
+
+
+
+//CLAUDE CODE
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { chatbotAPI } from '../services/api';
 
 function Chatbot() {
   const { token } = useAuth();
-
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hello! I'm your AI assistant for MediaX. How can I help you today?",
+      content: 'Hello! I\'m your AI assistant for MediaX. How can I help you today?',
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  /* =======================
-     AUTO SCROLL
-     ======================= */
+  // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  /* =======================
-     AUTO FOCUS
-     ======================= */
+  // Focus input when chat opens
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+    if (isOpen && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   }, [isOpen]);
 
-  /* =======================
-     SEND MESSAGE
-     ======================= */
   const handleSendMessage = async (e) => {
     e.preventDefault();
+    
     if (!inputMessage.trim() || isLoading) return;
 
     if (!token) {
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'Please log in to use the chatbot.' },
+        {
+          role: 'assistant',
+          content: 'Please log in to use the chatbot.',
+        },
       ]);
       return;
     }
 
     const userMessage = inputMessage.trim();
     setInputMessage('');
+    
+    // Add user message to chat
+    const newMessages = [
+      ...messages,
+      { role: 'user', content: userMessage },
+    ];
+    setMessages(newMessages);
     setIsLoading(true);
 
-    const nextMessages = [...messages, { role: 'user', content: userMessage }];
-    setMessages(nextMessages);
-
     try {
-      const conversationHistory = nextMessages.slice(-6).map(m => ({
-        role: m.role,
-        content: m.content,
-      }));
+      // Prepare conversation history (last 10 messages for context)
+      const conversationHistory = newMessages
+        .slice(-10)
+        .map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        }));
 
       const response = await chatbotAPI.chat({
         message: userMessage,
         conversationHistory: conversationHistory.slice(0, -1),
       });
 
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: response.response },
+        {
+          role: 'assistant',
+          content: response.response,
+        },
       ]);
-    } catch (err) {
-      setMessages(prev => [
+    } catch (error) {
+      setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'AI is busy. Please try again.' },
+        {
+          role: 'assistant',
+          content: error.message || 'Sorry, I encountered an error. Please try again.',
+        },
       ]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+  };
+
   const handleClearChat = () => {
     setMessages([
       {
         role: 'assistant',
-        content: "Hello! I'm your AI assistant for MediaX. How can I help you today?",
+        content: 'Hello! I\'m your AI assistant for MediaX. How can I help you today?',
       },
     ]);
   };
 
   return (
     <>
-      {/* CHAT WINDOW */}
+      {/* Chat Window - Responsive */}
       {isOpen && (
-        <div
-          className="
-            fixed z-50 bg-white dark:bg-slate-900 flex flex-col
-            inset-0 sm:inset-auto
-            sm:bottom-24 sm:right-6
-            w-full sm:w-96
-            h-full sm:h-[600px]
-            sm:rounded-2xl
-            shadow-2xl border border-gray-200 dark:border-slate-700
-          "
-        >
-          {/* HEADER */}
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 sm:rounded-t-2xl">
-            <div>
-              <h3 className="text-white font-semibold">AI Assistant</h3>
-              <p className="text-indigo-100 text-xs">MediaX Support</p>
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-20 sm:right-4 md:bottom-24 md:right-6 w-full h-full sm:w-[400px] sm:h-[600px] md:w-[420px] md:h-[650px] lg:w-[450px] lg:h-[680px] bg-white dark:bg-slate-900 sm:rounded-2xl shadow-2xl flex flex-col z-50 border-0 sm:border border-gray-200 dark:border-slate-700 transition-all duration-300 ease-out">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 sm:p-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-t-none sm:rounded-t-2xl">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600"
+                >
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-white font-semibold text-base sm:text-lg">AI Assistant</h3>
+                <p className="text-indigo-100 text-xs">MediaX Support</p>
+              </div>
             </div>
-            <div className="flex gap-3">
-              <button onClick={handleClearChat} className="text-white text-lg">
-                🗑
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button
+                onClick={handleClearChat}
+                className="text-white hover:text-indigo-200 transition-colors p-1 sm:p-1.5"
+                title="Clear chat"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
               </button>
-              <button onClick={() => setIsOpen(false)} className="text-white text-lg">
-                ✕
+              <button
+                onClick={handleToggle}
+                className="text-white hover:text-indigo-200 transition-colors p-1 sm:p-1.5"
+                title="Close chat"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
               </button>
             </div>
           </div>
 
-          {/* MESSAGES */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((msg, i) => (
+          {/* Messages Container */}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
+            {messages.map((message, index) => (
               <div
-                key={i}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                key={index}
+                className={`flex ${
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
               >
                 <div
-                  className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm ${
-                    msg.role === 'user'
+                  className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5 ${
+                    message.role === 'user'
                       ? 'bg-indigo-600 text-white'
                       : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100'
                   }`}
                 >
-                  {msg.content}
+                  <p className="text-sm sm:text-sm whitespace-pre-wrap break-words leading-relaxed">
+                    {message.content}
+                  </p>
                 </div>
               </div>
             ))}
-
             {isLoading && (
-              <div className="text-sm text-gray-500">AI is typing…</div>
+              <div className="flex justify-start">
+                <div className="bg-gray-100 dark:bg-slate-800 rounded-2xl px-4 py-2">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                </div>
+              </div>
             )}
-
             <div ref={messagesEndRef} />
           </div>
 
-          {/* INPUT (Sticky on mobile) */}
-          <form
-            onSubmit={handleSendMessage}
-            className="
-              p-3 border-t border-gray-200 dark:border-slate-700
-              sticky bottom-0 bg-white dark:bg-slate-900
-            "
-          >
+          {/* Input Form */}
+          <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
             <div className="flex gap-2">
               <input
                 ref={inputRef}
+                type="text"
                 value={inputMessage}
-                onChange={e => setInputMessage(e.target.value)}
-                placeholder="Type your message…"
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Type your message..."
+                className="flex-1 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 px-3 py-2 sm:px-4 sm:py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
                 disabled={isLoading}
-                className="
-                  flex-1 px-4 py-2 rounded-lg border
-                  bg-white dark:bg-slate-800
-                  focus:ring-2 focus:ring-indigo-500
-                "
               />
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isLoading}
-                className="
-                  bg-indigo-600 text-white px-4 py-2 rounded-lg
-                  disabled:opacity-50
-                "
+                className="bg-indigo-600 text-white rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-[44px]"
               >
-                ➤
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  />
+                </svg>
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* FLOATING BUTTON */}
+      {/* Floating Button - Responsive */}
       <button
-        onClick={() => setIsOpen(prev => !prev)}
-        className="
-          fixed bottom-6 right-6 z-40
-          w-14 h-14 sm:w-16 sm:h-16
-          bg-gradient-to-r from-indigo-500 to-indigo-600
-          text-white rounded-full shadow-lg
-          flex items-center justify-center
-          hover:scale-110 transition
-        "
+        onClick={handleToggle}
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center z-40 ${
+          isOpen ? 'rotate-180' : ''
+        }`}
+        aria-label="Toggle chatbot"
       >
-        🤖
+        {isOpen ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-7 w-7 sm:h-8 sm:w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-7 w-7 sm:h-8 sm:w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <rect x="6" y="4" width="12" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="9" cy="9" r="1.5" fill="currentColor" />
+            <circle cx="15" cy="9" r="1.5" fill="currentColor" />
+            <path d="M9 13h6" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="12" cy="4" r="1" fill="currentColor" />
+            <path d="M12 3v-1" strokeLinecap="round" />
+          </svg>
+        )}
       </button>
     </>
   );
 }
 
 export default Chatbot;
-
-
-
