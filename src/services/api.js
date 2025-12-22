@@ -288,3 +288,15 @@ export const removeToken = () => {
 export const getStoredToken = () => {
   return localStorage.getItem('token');
 };
+
+/* ===============================
+  CHATBOT APIs
+  =============================== */
+
+export const chatbotAPI = {
+  chat: ({ message, conversationHistory }) =>
+    apiRequest('/chatbot/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, conversationHistory }),
+    }),
+};

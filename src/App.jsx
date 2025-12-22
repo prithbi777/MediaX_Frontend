@@ -19,7 +19,8 @@ import ResetPassword from './pages/ResetPassword'
 import Navbar from './components/Navbar'
 import { getStoredToken } from './services/api'
 import { useAuth } from './context/AuthContext'
-import Footer from './components/Footer';
+import Footer from './components/Footer'
+import Chatbot from './components/Chatbot'
 
 
 /* -------- Route Guards -------- */
@@ -114,6 +115,9 @@ function App() {
 
         {/* Footer always visible */}
         <Footer />
+
+        {/* AI Chatbot - Fixed position */}
+        <Chatbot />
       </div>
     </Router>
   )
