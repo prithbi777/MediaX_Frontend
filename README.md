@@ -48,7 +48,7 @@ Security & Utilities: JWT Authentication, Email Integration, Rate Limiting, Inpu
 
 ---
 
-```md
+
 ## 📁 Project Structure
 
 ```
@@ -66,7 +66,6 @@ MediaX/
 │   └── config/
 └── README.md
 
-```
 ```
 
 
