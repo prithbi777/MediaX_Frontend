@@ -1,177 +1,124 @@
-# React Authentication App with Vite
+# 🎬 MediaX — Where Frames Move Your Soul
 
-A full-stack authentication application with React frontend and Express backend.
+MediaX is a modern full-stack media management platform that enables users to upload, manage, and explore video content through a clean, scalable, and user-centric interface.
 
-## Features
 
-- User Signup with validation
-- User Login with JWT authentication
-- Protected Dashboard route
-- Secure password hashing with bcrypt
-- JWT token-based authentication
-- Modern UI with gradient design
+---
 
-## Project Structure
+## 🚀 Overview
 
-```
-checkingcursor/
-├── backend/           # Express backend server
-│   ├── routes/       # API routes
-│   ├── data/         # User storage (in-memory)
-│   └── server.js     # Main server file
-├── src/
-│   ├── pages/        # React pages (Login, Signup, Dashboard)
-│   ├── services/     # API service functions
-│   └── App.jsx       # Main app component with routing
-└── package.json      # Frontend dependencies
-```
+MediaX acts as a centralized hub for casual and creative video content. Users can browse videos, manage their own uploads, view uploader details, and interact with the platform through a smooth and intuitive experience. The system is engineered with performance, security, and scalability in mind.
 
-## Getting Started
+---
 
-### Prerequisites
+## ✨ Core Features
 
-- Node.js (v14 or higher)
-- npm or yarn
+- Secure authentication (Login / Logout)
+- User profile management
+- Video upload and media management
+- Display of uploader name and upload timestamp
+- Organized and responsive media feed
+- Error handling for failed uploads
+- “Suggest Us” form for user video requests
+- Footer with support and legal navigation
 
-### Installation
+---
 
-1. **Frontend dependencies** (already installed):
-   ```bash
-   npm install
-   ```
+## 🧭 Application Navigation
 
-2. **Backend dependencies** (already installed):
-   ```bash
-   cd backend
-   npm install
-   ```
+- My Videos  
+- Profile  
+- Logout  
 
-### Running the Application
+---
 
-You need to run both the frontend and backend servers:
+Each video card displays:
+- Video title
+- Uploaded by
+- Date and time of upload
 
-#### Terminal 1 - Backend Server
-```bash
-cd backend
-npm start
-```
-The backend will run on `http://localhost:5000`
+---
 
-#### Terminal 2 - Frontend Server
-```bash
-npm run dev
-```
-The frontend will run on `http://localhost:5173`
+## 🛠️ Tech Stack
 
-### Usage
+Frontend: React (Vite), Tailwind CSS  
+Backend: Node.js, Express.js  
+Database: MongoDB  
+Security & Utilities: JWT Authentication, Email Integration, Rate Limiting, Input Sanitization
 
-1. Open your browser and navigate to `http://localhost:5173`
-2. You'll be redirected to the login page
-3. Click "Sign up" to create a new account
-4. After signing up or logging in, you'll be redirected to the dashboard
-5. The dashboard displays your user information
-6. Click "Logout" to sign out
+---
 
-## API Endpoints
+## 📁 Project Structure
 
-### POST `/api/auth/signup`
-Create a new user account.
+MediaX/
+├── frontend/
+│   ├── components/
+│   ├── pages/
+│   ├── services/
+│   └── styles/
+├── backend/
+│   ├── routes/
+│   ├── controllers/
+│   ├── models/
+│   └── config/
+└── README.md
 
-**Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
+---
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User created successfully",
-  "token": "jwt-token-here",
-  "user": {
-    "id": 1,
-    "email": "john@example.com",
-    "name": "John Doe"
-  }
-}
-```
+## ⚙️ Setup Instructions
 
-### POST `/api/auth/login`
-Login with existing credentials.
+Clone the repository:
+git clone https://github.com/your-username/mediax.git  
+cd mediax  
 
-**Request Body:**
-```json
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
+Install dependencies and run:
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "token": "jwt-token-here",
-  "user": {
-    "id": 1,
-    "email": "john@example.com",
-    "name": "John Doe"
-  }
-}
-```
+Frontend:
+cd frontend  
+npm install  
+npm run dev  
 
-### GET `/api/auth/verify`
-Verify JWT token and get user information.
+Backend:
+cd backend  
+npm install  
+npm run dev  
 
-**Headers:**
-```
-Authorization: Bearer <token>
-```
+---
 
-**Response:**
-```json
-{
-  "success": true,
-  "user": {
-    "id": 1,
-    "email": "john@example.com",
-    "name": "John Doe"
-  }
-}
-```
+## 🔐 Environment Variables
 
-## Security Notes
+PORT=5001  
+MONGO_URI=your_mongodb_uri  
+JWT_SECRET=your_jwt_secret  
+MAIL_USER=your_email  
+MAIL_PASS=your_email_password  
+ADMIN_EMAIL=admin_email  
+OTHER KEYS ARE THERE TOO.
 
-⚠️ **Important:** This is a development setup. For production:
+---
 
-1. Change the `JWT_SECRET` in `backend/.env` to a strong, random secret
-2. Replace in-memory user storage with a proper database (MongoDB, PostgreSQL, etc.)
-3. Add rate limiting to prevent brute force attacks
-4. Use HTTPS in production
-5. Add input validation and sanitization
-6. Implement password strength requirements
-7. Add email verification
-8. Use environment variables for all sensitive configuration
+## 🛣️  UPCOMING FEATURES
 
-## Technologies Used
+- Advanced search and filtering
+- Like and comment system
+- Admin analytics dashboard
+- Cloud-based media storage optimization
+- Improved mobile responsiveness
 
-### Frontend
-- React 19
-- React Router DOM
-- Vite
-- CSS3
+---
 
-### Backend
-- Express.js
-- bcryptjs (password hashing)
-- jsonwebtoken (JWT authentication)
-- CORS (Cross-Origin Resource Sharing)
+## 🤝 Contributing
 
-## License
+Contributions are welcome. Fork the repository, create a feature branch, and submit a pull request with clear and meaningful changes.
 
-MIT
+---
+
+---
+
+## 📞 Contact
+
+EMAIL: becasual05@gmail.com
+
+Have questions or feedback? We’d love to hear from you.
+
+© 2025 MediaX. All rights reserved.
