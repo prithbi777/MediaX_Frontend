@@ -3,6 +3,13 @@
 MediaX is a modern full-stack media management platform that enables users to upload, manage, and explore video content through a clean, scalable, and user-centric interface.
 
 
+## 🌐 Live Demo
+
+🚀 **Explore MediaX in action:**  
+👉 https://media-x-frontend-live.vercel.app/
+
+
+
 ---
 
 ## 🚀 Overview
