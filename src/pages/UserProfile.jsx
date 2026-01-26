@@ -70,7 +70,7 @@ function UserProfile() {
         >
           ← Back
         </button>
-        
+
         <div className="rounded-xl bg-white dark:bg-slate-900 shadow-md p-6 transition-colors">
           <div className="flex items-center space-x-4">
             {user.photo ? (
@@ -86,7 +86,7 @@ function UserProfile() {
                 </span>
               </div>
             )}
-            
+
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-800 dark:text-slate-100 transition-colors">
                 {user.name}
@@ -116,24 +116,38 @@ function UserProfile() {
             <p className="text-sm">This user hasn't uploaded any videos</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {videos.map((v) => (
-              <div key={v.id} className="rounded-xl bg-white dark:bg-slate-900 shadow-md overflow-hidden transition-colors">
-                <div className="aspect-video bg-slate-100 dark:bg-slate-800 transition-colors">
+              <button
+                key={v.id}
+                onClick={() => navigate(`/video/${v.id}`)}
+                className="group text-left rounded-2xl bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              >
+                <div className="aspect-video bg-slate-100 dark:bg-slate-800 transition-colors relative overflow-hidden">
                   <img
                     src={v.thumbnailUrl}
                     alt={v.title}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="bg-white/90 p-3 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
                 <div className="p-4">
-                  <p className="font-semibold text-gray-800 dark:text-slate-100 transition-colors truncate">{v.title}</p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400 transition-colors mt-1">
-                    {v.createdAt ? new Date(v.createdAt).toLocaleString() : ''}
+                  <p className="font-bold text-gray-800 dark:text-slate-100 transition-colors line-clamp-2 min-h-[2.5rem] group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                    {v.title}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 transition-colors mt-2">
+                    {v.createdAt ? new Date(v.createdAt).toLocaleDateString() : ''}
                   </p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}

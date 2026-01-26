@@ -18,6 +18,7 @@ function ManageMedia() {
   const [editingId, setEditingId] = useState(null)
   const [editTitle, setEditTitle] = useState('')
   const [showEditModal, setShowEditModal] = useState(false)
+  const [videoToDelete, setVideoToDelete] = useState(null) // State for confirmation modal
 
   const fetchVideos = async () => {
     setError('')
@@ -81,8 +82,8 @@ function ManageMedia() {
     setUploading(true)
     setUploadProgress(0)
     try {
-      await videosAPI.upload({ 
-        title: title.trim(), 
+      await videosAPI.upload({
+        title: title.trim(),
         file,
         onProgress: (progress) => {
           setUploadProgress(progress)
@@ -100,11 +101,14 @@ function ManageMedia() {
     }
   }
 
-  const handleDelete = async (id) => {
+  const handleDelete = async () => {
+    if (!videoToDelete) return
+
     setError('')
-    setDeletingId(id)
+    setDeletingId(videoToDelete.id)
     try {
-      await videosAPI.remove(id)
+      await videosAPI.remove(videoToDelete.id)
+      setVideoToDelete(null)
       await fetchVideos()
     } catch (err) {
       setError(err.message || 'Delete failed')
@@ -223,39 +227,49 @@ function ManageMedia() {
           Loading media...
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sorted.map((v) => (
-            <div key={v.id} className="rounded-xl bg-white dark:bg-slate-900 shadow-md overflow-hidden transition-colors">
-              <div className="aspect-video bg-slate-100 dark:bg-slate-800 transition-colors">
+            <div key={v.id} className="group rounded-2xl bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-100 dark:border-slate-800">
+              <div
+                className="aspect-video bg-slate-100 dark:bg-slate-800 transition-colors relative cursor-pointer overflow-hidden"
+                onClick={() => navigate(`/video/${v.id}`)}
+              >
                 <img
                   src={v.thumbnailUrl}
                   alt={v.title}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
+                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="bg-white/90 p-2.5 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    </svg>
+                  </div>
+                </div>
               </div>
               <div className="p-4">
-                <p className="font-semibold text-gray-800 dark:text-slate-100 transition-colors truncate">{v.title}</p>
-                <p className="text-xs text-gray-500 dark:text-slate-400 transition-colors mt-1">
-                  {v.createdAt ? new Date(v.createdAt).toLocaleString() : ''}
+                <p className="font-bold text-gray-800 dark:text-slate-100 transition-colors line-clamp-1 text-lg mb-1">{v.title}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400 transition-colors mb-4">
+                  {v.createdAt ? new Date(v.createdAt).toLocaleDateString() : ''}
                 </p>
 
-                <div className="mt-3 flex gap-2">
+                <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => handleEdit(v)}
                     disabled={deletingId === v.id}
-                    className="flex-1 rounded-md bg-indigo-600 py-2.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 rounded-xl bg-slate-100 dark:bg-slate-800 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDelete(v.id)}
+                    onClick={() => setVideoToDelete(v)}
                     disabled={deletingId === v.id}
-                    className="flex-1 rounded-md bg-red-500 py-2.5 text-sm text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 rounded-xl bg-red-50 dark:bg-red-950/30 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors disabled:opacity-50"
                   >
-                    {deletingId === v.id ? 'Deleting...' : 'Delete'}
+                    {deletingId === v.id ? '...' : 'Delete'}
                   </button>
                 </div>
               </div>
@@ -308,6 +322,42 @@ function ManageMedia() {
                   className="flex-1 rounded-md bg-indigo-600 py-2.5 text-sm text-white hover:bg-indigo-700 transition-colors"
                 >
                   Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {videoToDelete && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-3 sm:p-4 z-50 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 overflow-hidden shadow-2xl transition-all scale-100 animate-in fade-in zoom-in duration-200">
+            <div className="p-6 text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 dark:bg-red-950/30 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Delete Video?</h3>
+              <p className="text-gray-500 dark:text-slate-400 mb-6">
+                Are you sure you want to delete <span className="font-semibold text-gray-800 dark:text-slate-200">"{videoToDelete.title}"</span>? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setVideoToDelete(null)}
+                  className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deletingId === videoToDelete.id}
+                  className="flex-1 px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20 disabled:opacity-50"
+                >
+                  {deletingId === videoToDelete.id ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

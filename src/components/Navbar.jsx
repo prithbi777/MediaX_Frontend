@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom"
-import { FaBars, FaMoon, FaSun, FaTimes, FaUserCircle } from "react-icons/fa"
+import { FaBars, FaMoon, FaSun, FaTimes, FaUserCircle, FaSearch } from "react-icons/fa"
 import { useAuth } from "../context/AuthContext"
 import { useEffect, useRef, useState } from "react"
 import { useTheme } from "../context/ThemeContext"
@@ -12,6 +12,7 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [avatarLoadFailed, setAvatarLoadFailed] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const profileMenuRef = useRef(null)
 
   const handleLogout = () => {
@@ -75,6 +76,14 @@ const Navbar = () => {
     setIsProfileMenuOpen(false)
   }
 
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery('')
+    }
+  }
+
   return (
     <nav className="w-full bg-white dark:bg-slate-900 shadow-sm transition-colors">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
@@ -88,10 +97,19 @@ const Navbar = () => {
             MediaX
           </Link>
 
-          {/* Center (desktop only) */}
-          {/* <div className="hidden lg:block text-gray-700 dark:text-slate-200 font-extrabold text-xl xl:text-2xl transition-colors">
-            Welcome to MediaX
-          </div> */}
+          {/* Center - Search Bar (desktop) */}
+          <div className="hidden md:flex flex-1 max-w-md mx-4">
+            <form onSubmit={handleSearch} className="w-full relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search videos..."
+                className="w-full px-4 py-2 pl-10 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+              />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+            </form>
+          </div>
 
           {/* Right (desktop) */}
           <div className="hidden md:flex items-center gap-4">
@@ -228,6 +246,19 @@ const Navbar = () => {
         {/* Mobile menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden mt-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition-colors">
+            {/* Mobile Search Bar */}
+            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+              <form onSubmit={handleSearch} className="w-full relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search videos..."
+                  className="w-full px-4 py-2 pl-10 pr-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
+              </form>
+            </div>
             <div className="flex flex-col">
               <Link
                 to="/"

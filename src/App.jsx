@@ -14,6 +14,7 @@ import Home from './pages/Home'
 import ManageMedia from './pages/ManageMedia'
 import MyVideos from './pages/MyVideos'
 import UserProfile from './pages/UserProfile'
+import VideoPage from './pages/VideoPage'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Navbar from './components/Navbar'
@@ -99,6 +100,11 @@ function App() {
             <Route
               path="/user/:userId"
               element={<UserProfile />}
+            />
+
+            <Route
+              path="/video/:videoId"
+              element={<VideoPage />}
             />
 
             <Route

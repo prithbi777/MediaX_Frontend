@@ -60,8 +60,15 @@ const apiRequest = async (endpoint, options = {}) => {
   =============================== */
 
 export const videosAPI = {
-  list: () =>
-    apiRequest('/videos', {
+  list: (search = '') => {
+    const query = search ? `?search=${encodeURIComponent(search)}` : '';
+    return apiRequest(`/videos${query}`, {
+      method: 'GET',
+    });
+  },
+
+  getVideo: (id) =>
+    apiRequest(`/videos/${id}`, {
       method: 'GET',
     }),
 
@@ -90,7 +97,7 @@ export const videosAPI = {
     const publicId = crypto.randomUUID
       ? crypto.randomUUID()
       : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    
+
     const folder = 'mediax/videos';
     const resourceType = 'video';
 
@@ -130,7 +137,7 @@ export const videosAPI = {
             }
 
             const cloudinaryResult = JSON.parse(xhr.responseText);
-            
+
             // Step 3: Save metadata to backend
             // Update progress to 95% when starting backend save
             if (onProgress) {
@@ -287,6 +294,49 @@ export const removeToken = () => {
 
 export const getStoredToken = () => {
   return localStorage.getItem('token');
+};
+
+/* ===============================
+  REVIEW APIs
+  =============================== */
+
+export const reviewsAPI = {
+  getVideoReviews: (videoId) =>
+    apiRequest(`/reviews/video/${videoId}`, {
+      method: 'GET',
+    }),
+
+  createReview: (videoId, comment) =>
+    apiRequest(`/reviews/video/${videoId}`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    }),
+
+  updateReview: (reviewId, comment) =>
+    apiRequest(`/reviews/${reviewId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ comment }),
+    }),
+
+  deleteReview: (reviewId) =>
+    apiRequest(`/reviews/${reviewId}`, {
+      method: 'DELETE',
+    }),
+
+  likeReview: (reviewId) =>
+    apiRequest(`/reviews/${reviewId}/like`, {
+      method: 'POST',
+    }),
+
+  likeVideo: (videoId) =>
+    apiRequest(`/reviews/video/${videoId}/like`, {
+      method: 'POST',
+    }),
+
+  getVideoLikeStatus: (videoId) =>
+    apiRequest(`/reviews/video/${videoId}/like-status`, {
+      method: 'GET',
+    }),
 };
 
 /* ===============================
