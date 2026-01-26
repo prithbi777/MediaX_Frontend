@@ -230,18 +230,18 @@ function UserProfile() {
                 )}
               </div>
 
-              <div className="grid grid-cols-3 gap-6 sm:gap-12 mb-8 px-4 sm:px-0">
-                <button onClick={() => setActiveTab('videos')} className="flex flex-col items-center md:items-start group">
-                  <span className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user.videoCount || 0}</span>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Videos</span>
+              <div className="grid grid-cols-3 gap-2 sm:gap-12 mb-8 px-2 sm:px-0">
+                <button onClick={() => setActiveTab('videos')} className="flex flex-col items-center md:items-start group min-w-0">
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user.videoCount || 0}</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Videos</span>
                 </button>
-                <button onClick={() => setActiveTab('followers')} className="flex flex-col items-center md:items-start group">
-                  <span className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user.followersCount || 0}</span>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Followers</span>
+                <button onClick={() => setActiveTab('followers')} className="flex flex-col items-center md:items-start group min-w-0">
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user.followersCount || 0}</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Followers</span>
                 </button>
-                <button onClick={() => setActiveTab('following')} className="flex flex-col items-center md:items-start group">
-                  <span className="text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user.followingCount || 0}</span>
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Following</span>
+                <button onClick={() => setActiveTab('following')} className="flex flex-col items-center md:items-start group min-w-0">
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user.followingCount || 0}</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Following</span>
                 </button>
               </div>
 
@@ -263,7 +263,7 @@ function UserProfile() {
 
       <div className="space-y-6">
         {/* Navigation Tabs */}
-        <div className="flex justify-center gap-8 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex justify-start sm:justify-center gap-6 sm:gap-8 border-b border-slate-200 dark:border-slate-800 overflow-x-auto no-scrollbar scroll-smooth">
           {['videos', 'followers', 'following'].map((tab) => (
             <button
               key={tab}

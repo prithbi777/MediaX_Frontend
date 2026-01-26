@@ -199,18 +199,18 @@ function Profile() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-8 sm:gap-16 mb-8 px-4 sm:px-0">
-                <button onClick={() => setActiveTab('videos')} className="flex flex-col items-center md:items-start group">
-                  <span className="text-3xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{user?.videoCount || 0}</span>
-                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Videos</span>
+              <div className="grid grid-cols-3 gap-2 sm:gap-16 mb-8 px-2 sm:px-0">
+                <button onClick={() => setActiveTab('videos')} className="flex flex-col items-center md:items-start group min-w-0">
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{user?.videoCount || 0}</span>
+                  <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Videos</span>
                 </button>
-                <button onClick={() => setActiveTab('followers')} className="flex flex-col items-center md:items-start group">
-                  <span className="text-3xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{user?.followers?.length || 0}</span>
-                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Followers</span>
+                <button onClick={() => setActiveTab('followers')} className="flex flex-col items-center md:items-start group min-w-0">
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{user?.followers?.length || 0}</span>
+                  <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Followers</span>
                 </button>
-                <button onClick={() => setActiveTab('following')} className="flex flex-col items-center md:items-start group">
-                  <span className="text-3xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{user?.following?.length || 0}</span>
-                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Following</span>
+                <button onClick={() => setActiveTab('following')} className="flex flex-col items-center md:items-start group min-w-0">
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{user?.following?.length || 0}</span>
+                  <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Following</span>
                 </button>
               </div>
 
@@ -223,7 +223,7 @@ function Profile() {
       </div>
 
       <div className="space-y-10">
-        <div className="flex justify-center gap-10 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex justify-start sm:justify-center gap-6 sm:gap-10 border-b border-slate-200 dark:border-slate-800 overflow-x-auto no-scrollbar scroll-smooth">
           {['videos', 'followers', 'following', 'settings'].map((tab) => (
             <button
               key={tab}
