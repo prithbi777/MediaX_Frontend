@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { videosAPI } from '../services/api'
 import MEME from '../assets/MEME.png'
 import { useAuth } from '../context/AuthContext'
-import VideoPlayer from '../components/VideoPlayer'
+import { FaPlay, FaRocket, FaUserPlus, FaSignInAlt, FaMagic } from 'react-icons/fa'
 
 function Home() {
   const { token, user } = useAuth()
@@ -13,7 +13,6 @@ function Home() {
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [activeVideo, setActiveVideo] = useState(null)
   const [isSmallScreen, setIsSmallScreen] = useState(false)
 
   const userName = (user?.name || '').trim()
@@ -48,23 +47,13 @@ function Home() {
       }
     }
 
-    es.onerror = () => {
-      es.close()
-    }
-
-    return () => {
-      es.close()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    es.onerror = () => es.close()
+    return () => es.close()
   }, [searchQuery])
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)')
-
-    const update = () => {
-      setIsSmallScreen(mq.matches)
-    }
-
+    const update = () => setIsSmallScreen(mq.matches)
     update()
     if (mq.addEventListener) {
       mq.addEventListener('change', update)
@@ -76,112 +65,146 @@ function Home() {
 
   const sorted = useMemo(() => videos, [videos])
 
+  // --- LANDING PAGE RENDERING (!token) ---
+  if (!token) {
+    return (
+      <div className="w-full relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors pb-24">
+        {/* Background Decorations */}
+        <div className="absolute top-20 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] -z-10 animate-pulse"></div>
+        <div className="absolute bottom-40 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] -z-10 animate-pulse delay-700"></div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-32">
+          <div className="text-center space-y-8 relative">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-[3px] border border-indigo-100 dark:border-indigo-800/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <FaMagic /> Welcome to the Future
+            </div>
+
+            <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black text-slate-900 dark:text-white tracking-tighter leading-[0.9] animate-in slide-in-from-bottom-6 duration-700">
+              Where Frames Move <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Your Soul!</span>
+            </h1>
+
+            <p className="max-w-2xl mx-auto text-slate-500 dark:text-slate-400 font-bold text-lg sm:text-xl uppercase tracking-wider animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              Join the elite circle of cinematic creators and storytellers.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-10 animate-in fade-in slide-in-from-bottom-10 duration-[1200ms]">
+              <Link
+                to="/signup"
+                className="group relative px-10 py-5 bg-indigo-600 text-white rounded-[32px] font-black uppercase tracking-[4px] text-sm hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-indigo-600/40 flex items-center gap-3"
+              >
+                Join Global Hub <FaRocket className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              </Link>
+              <Link
+                to="/login"
+                className="px-10 py-5 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-[32px] font-black uppercase tracking-[4px] text-sm hover:scale-105 active:scale-95 transition-all border-2 border-slate-100 dark:border-slate-800 flex items-center gap-3"
+              >
+                Identify <FaSignInAlt />
+              </Link>
+            </div>
+          </div>
+
+          {/* THE CAT SECTION - Premium Framing */}
+          <div className="mt-32 relative flex justify-center animate-in zoom-in-95 duration-1000">
+            <div className="relative p-2 rounded-[48px] bg-gradient-to-br from-indigo-500 to-purple-600 shadow-[0_0_80px_rgba(79,70,229,0.3)] group">
+              <div className="bg-white dark:bg-slate-900 rounded-[40px] overflow-hidden p-4 sm:p-8 flex flex-col items-center gap-8">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-indigo-500/20 blur-[40px] group-hover:bg-indigo-500/40 transition-colors"></div>
+                  <img
+                    src={MEME}
+                    alt="Sad Cat Hub"
+                    className="w-48 h-48 sm:w-64 sm:h-64 rounded-3xl object-cover relative ring-4 ring-slate-100 dark:ring-slate-800 shadow-2xl"
+                  />
+                </div>
+                <div className="text-center space-y-3">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">Don't be like him.</h3>
+                  <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[4px]">Sign up now to access full platform</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // --- LOGGED IN USER VIEW (token === true) ---
   return (
-    <div className="w-full max-w-7xl mb-36 mx-auto">
-      <div className="mb-10 sm:mb-16">
+    <div className="w-full max-w-7xl mb-36 mx-auto px-4">
+      <div className="mb-20 pt-10">
         <div
-          className={`text-center sm:text-lg font-extrabold transition-colors mb-10 mt-5 ${isAuthLoading
+          className={`text-center sm:text-lg font-black transition-colors mb-4 ${isAuthLoading
             ? 'text-slate-600 dark:text-slate-300 opacity-80 animate-pulse'
-            : 'text-slate-700 dark:text-slate-200'
+            : 'text-slate-400 dark:text-slate-500'
             }`}
         >
           {userName ? (
-            <>
-              <p className='text-2xl'>Welcome</p>
-              <span className="text-indigo-600 dark:text-indigo-400 text-3xl transition-colors">{userName}</span>
-            </>
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-[10px] uppercase tracking-[6px] font-black">Logged in as</span>
+              <span className="text-4xl sm:text-6xl text-slate-900 dark:text-white font-black tracking-tighter transition-colors">{userName}</span>
+            </div>
           ) : (
-            <>
-              <p className='text-2xl'>Welcome to MediaX</p>
-            </>
-
+            <p className='text-4xl font-black tracking-tighter'>Welcome to the Hub</p>
           )}
         </div>
-        <h2 className="text-center mb-24 text-2xl sm:text-4xl lg:text-5xl font-extrabold text-gray-800 dark:text-slate-100 transition-colors mt-2">
-          Where Frames Move Your Soul!
+        <h2 className="text-center text-xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mt-8">
+          The Masterpiece Collections
         </h2>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 dark:bg-red-900 text-red-600 dark:text-red-300 px-4 py-2 text-sm transition-colors">
+        <div className="mb-12 p-6 rounded-3xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 text-red-600 dark:text-red-300 text-sm font-bold flex items-center gap-4">
+          <div className="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
           {error}
         </div>
       )}
 
       {loading ? (
-        <div className="rounded-xl bg-white dark:bg-slate-900 px-6 py-4 shadow-md text-center text-gray-600 dark:text-slate-300 transition-colors">
-          Loading videos...
+        <div className="py-32 flex flex-col items-center justify-center gap-6">
+          <div className="w-12 h-12 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
+          <p className="text-xs font-black uppercase tracking-[4px] text-slate-400">Calibrating Frames...</p>
         </div>
-      ) : (!token ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <img
-            src={MEME}
-            alt="Login required"
-            className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 mb-6 rounded-lg shadow-lg object-cover"
-          />
-          <p className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-700 dark:text-gray-300 text-center">
-            Do Signup/Login to watch videos
-          </p>
-        </div>
-
-
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {sorted.map((v) => (
             <button
               key={v.id}
               type="button"
               onClick={() => navigate(`/video/${v.id}`)}
-              className="group text-left rounded-2xl bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              className="group text-left rounded-[32px] bg-white dark:bg-slate-900 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-slate-100 dark:border-slate-800"
             >
               <div className="aspect-video bg-slate-100 dark:bg-slate-800 transition-colors relative overflow-hidden">
                 <img
                   src={v.thumbnailUrl}
                   alt={v.title}
-                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <div className="bg-white/90 p-3 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center duration-300">
+                  <div className="bg-white/20 backdrop-blur-md p-5 rounded-full border border-white/30 transform scale-50 group-hover:scale-100 transition-all duration-500">
+                    <FaPlay className="text-white ml-1" size={24} />
                   </div>
                 </div>
               </div>
-              <div className="p-4 sm:p-5">
-                <p className="font-bold text-gray-800 dark:text-slate-100 transition-colors line-clamp-2 min-h-[3rem] text-lg group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+              <div className="p-6">
+                <p className="font-black text-xl text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                   {v.title}
                 </p>
-                {v.uploadedBy ? (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      try {
-                        const userId = v.uploadedBy?._id || (typeof v.uploadedBy === 'string' ? v.uploadedBy : null)
-                        if (userId) {
-                          navigate(`/user/${userId}`)
-                        }
-                      } catch (err) {
-                        console.error('Error navigating to user profile:', err)
-                      }
-                    }}
-                    className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors mt-2 text-left cursor-pointer font-medium block"
-                  >
-                    {v.uploaderName || 'Unknown'}
-                  </span>
-                ) : (
-                  <span className="text-sm text-gray-500 dark:text-slate-400 transition-colors mt-2 text-left block">
-                    {v.uploaderName || 'Unknown'}
-                  </span>
-                )}
-                <div className="flex items-center justify-between mt-3 text-xs text-gray-500 dark:text-slate-400">
-                  <p>
+                <div className="flex items-center gap-3 mt-4">
+                  {v.uploaderAvatar ? (
+                    <img src={v.uploaderAvatar} className="w-6 h-6 rounded-full" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-[8px] text-white">{(v.uploaderName || 'U').charAt(0)}</div>
+                  )}
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{v.uploaderName || 'Unknown Creator'}</span>
+                </div>
+
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-50 dark:border-slate-800/50">
+                  <p className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">
                     {v.createdAt ? new Date(v.createdAt).toLocaleDateString() : ''}
                   </p>
                   {v.likesCount > 0 && (
-                    <p className="flex items-center gap-1 font-medium text-red-500">
+                    <p className="flex items-center gap-1 font-black text-[10px] text-red-500 uppercase tracking-widest">
                       ❤️ {v.likesCount}
                     </p>
                   )}
@@ -190,8 +213,8 @@ function Home() {
             </button>
           ))}
         </div>
-      ))}
-    </div >
+      )}
+    </div>
   )
 }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { authAPI } from '../services/api'
+import { FaEnvelope, FaArrowLeft, FaPaperPlane, FaKey } from 'react-icons/fa'
 
 function ForgotPassword() {
   const [email, setEmail] = useState('')
@@ -17,16 +18,12 @@ function ForgotPassword() {
     try {
       const userEmail = email.trim()
       const response = await authAPI.forgotPassword(userEmail)
-      
-      // In development, log the reset token for testing
+
       if (response.resetToken) {
         console.log('Reset token for testing:', response.resetToken)
       }
-      
-      // Show success message with the email
+
       setSuccessEmail(userEmail)
-      
-      // Clear the email field after successful submission
       setEmail('')
     } catch (err) {
       setError(err.message || 'Failed to send reset link')
@@ -36,68 +33,83 @@ function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-slate-100 dark:bg-slate-950 transition-colors">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-slate-100 transition-colors">
-            Forgot your password?
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-slate-400 transition-colors">
-            Enter your email address and we'll send you a link to reset your password.
-          </p>
-        </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 dark:bg-red-900 p-4">
-              <div className="text-sm text-red-600 dark:text-red-300">{error}</div>
-            </div>
-          )}
+    <div className="w-full min-h-[calc(100vh-80px)] flex items-center justify-center py-20 px-4 relative overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors">
+      {/* Decorative background elements consistent with Login/Signup */}
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
-          {successEmail && (
-            <div className="rounded-md bg-green-50 dark:bg-green-900 p-4">
-              <div className="text-sm text-green-600 dark:text-green-300">
-                Password Reset Link Sent To This Email: {successEmail}
-              </div>
-            </div>
-          )}
+      <div className="w-full max-w-lg">
+        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/20 dark:border-slate-800/50 rounded-[48px] shadow-2xl p-8 sm:p-12 transition-all duration-500 relative">
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-200 transition-colors">
-              Email address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 appearance-none relative block w-full px-3 py-3 border border-gray-300 dark:border-slate-700 placeholder-gray-500 dark:placeholder-slate-400 text-gray-900 dark:text-slate-100 bg-white dark:bg-slate-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
-              placeholder="Enter your email"
-            />
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 p-5 bg-indigo-600 rounded-[24px] shadow-xl shadow-indigo-600/30 text-white">
+            <FaKey size={32} />
           </div>
 
-          <div>
+          <div className="text-center mb-10 mt-4">
+            <h1 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">
+              Lost Access?
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-[4px] text-[10px]">
+              We'll help you recover your portal
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {error && (
+              <div className="p-5 rounded-3xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 text-red-600 dark:text-red-400 text-sm font-bold flex items-center gap-4 animate-in slide-in-from-top-4">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-ping shrink-0"></div>
+                {error}
+              </div>
+            )}
+
+            {successEmail && (
+              <div className="p-5 rounded-3xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/50 text-green-600 dark:text-green-400 text-sm font-bold flex flex-col gap-2 animate-in zoom-in-95">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0"></div>
+                  <span>Recovery Link Dispatched!</span>
+                </div>
+                <p className="text-[10px] uppercase tracking-widest opacity-80 pl-5">Check: {successEmail}</p>
+              </div>
+            )}
+
+            <div className="relative group">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-5 mb-2 block">Registered Email</label>
+              <div className="relative">
+                <FaEnvelope className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
+                <input
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="elon@mars.com"
+                  className="w-full pl-14 pr-6 py-4 rounded-3xl bg-slate-50/50 dark:bg-slate-800/50 border-2 border-transparent focus:border-indigo-500 outline-none font-bold text-slate-800 dark:text-slate-100 transition-all shadow-inner"
+                />
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-[32px] font-black uppercase tracking-[6px] text-sm hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-600/30 transition-all active:scale-[0.98] flex items-center justify-center gap-4 disabled:opacity-50"
             >
-              {loading ? 'Sending...' : 'Send Reset Link'}
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>Send Reset Link <FaPaperPlane size={14} /></>
+              )}
             </button>
-          </div>
 
-          <div className="text-center">
-            <Link
-              to="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
-            >
-              Back to login
-            </Link>
-          </div>
-        </form>
+            <div className="text-center pt-4">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[3px] text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
+                <FaArrowLeft /> Back to identification
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )

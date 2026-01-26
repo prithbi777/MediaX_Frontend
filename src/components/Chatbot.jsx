@@ -1,830 +1,7 @@
-// import { useState, useRef, useEffect } from 'react';
-// import { useAuth } from '../context/AuthContext';
-// import { chatbotAPI } from '../services/api';
-
-// function Chatbot() {
-//   const { token } = useAuth();
-//   const [isOpen, setIsOpen] = useState(false);
-//   const [messages, setMessages] = useState([
-//     {
-//       role: 'assistant',
-//       content: 'Hello! I\'m your AI assistant for MediaX. How can I help you today?',
-//     },
-//   ]);
-//   const [inputMessage, setInputMessage] = useState('');
-//   const [isLoading, setIsLoading] = useState(false);
-//   const messagesEndRef = useRef(null);
-//   const inputRef = useRef(null);
-
-//   // Auto-scroll to bottom when new messages are added
-//   useEffect(() => {
-//     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-//   }, [messages]);
-
-//   // Focus input when chat opens
-//   useEffect(() => {
-//     if (isOpen && inputRef.current) {
-//       setTimeout(() => {
-//         inputRef.current?.focus();
-//       }, 100);
-//     }
-//   }, [isOpen]);
-
-//   const handleSendMessage = async (e) => {
-//     e.preventDefault();
-    
-//     if (!inputMessage.trim() || isLoading) return;
-
-//     if (!token) {
-//       setMessages((prev) => [
-//         ...prev,
-//         {
-//           role: 'assistant',
-//           content: 'Please log in to use the chatbot.',
-//         },
-//       ]);
-//       return;
-//     }
-
-//     const userMessage = inputMessage.trim();
-//     setInputMessage('');
-    
-//     // Add user message to chat
-//     const newMessages = [
-//       ...messages,
-//       { role: 'user', content: userMessage },
-//     ];
-//     setMessages(newMessages);
-//     setIsLoading(true);
-
-//     try {
-//       // Prepare conversation history (last 10 messages for context)
-//       const conversationHistory = newMessages
-//         .slice(-10)
-//         .map((msg) => ({
-//           role: msg.role,
-//           content: msg.content,
-//         }));
-
-//       const response = await chatbotAPI.chat({
-//         message: userMessage,
-//         conversationHistory: conversationHistory.slice(0, -1), // Exclude the current user message
-//       });
-
-//       setMessages((prev) => [
-//         ...prev,
-//         {
-//           role: 'assistant',
-//           content: response.response,
-//         },
-//       ]);
-//     } catch (error) {
-//       setMessages((prev) => [
-//         ...prev,
-//         {
-//           role: 'assistant',
-//           content: error.message || 'Sorry, I encountered an error. Please try again.',
-//         },
-//       ]);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const handleToggle = () => {
-//     setIsOpen(!isOpen);
-//   };
-
-//   const handleClearChat = () => {
-//     setMessages([
-//       {
-//         role: 'assistant',
-//         content: 'Hello! I\'m your AI assistant for MediaX. How can I help you today?',
-//       },
-//     ]);
-//   };
-
-//   return (
-//     <>
-//       {/* Chat Window */}
-//       {isOpen && (
-//         <div className="fixed bottom-24 right-6 w-96 h-[600px] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200 dark:border-slate-700 transition-all duration-300 ease-out">
-//           {/* Header */}
-//           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-t-2xl">
-//             <div className="flex items-center gap-3">
-//               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   viewBox="0 0 24 24"
-//                   fill="currentColor"
-//                   className="w-6 h-6 text-indigo-600"
-//                 >
-//                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-//                 </svg>
-//               </div>
-//               <div>
-//                 <h3 className="text-white font-semibold text-lg">AI Assistant</h3>
-//                 <p className="text-indigo-100 text-xs">MediaX Support</p>
-//               </div>
-//             </div>
-//             <div className="flex items-center gap-2">
-//               <button
-//                 onClick={handleClearChat}
-//                 className="text-white hover:text-indigo-200 transition-colors p-1"
-//                 title="Clear chat"
-//               >
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   className="h-5 w-5"
-//                   fill="none"
-//                   viewBox="0 0 24 24"
-//                   stroke="currentColor"
-//                 >
-//                   <path
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                     strokeWidth={2}
-//                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-//                   />
-//                 </svg>
-//               </button>
-//               <button
-//                 onClick={handleToggle}
-//                 className="text-white hover:text-indigo-200 transition-colors p-1"
-//                 title="Close chat"
-//               >
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   className="h-5 w-5"
-//                   fill="none"
-//                   viewBox="0 0 24 24"
-//                   stroke="currentColor"
-//                 >
-//                   <path
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                     strokeWidth={2}
-//                     d="M6 18L18 6M6 6l12 12"
-//                   />
-//                 </svg>
-//               </button>
-//             </div>
-//           </div>
-
-//           {/* Messages Container */}
-//           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-//             {messages.map((message, index) => (
-//               <div
-//                 key={index}
-//                 className={`flex ${
-//                   message.role === 'user' ? 'justify-end' : 'justify-start'
-//                 }`}
-//               >
-//                 <div
-//                   className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-//                     message.role === 'user'
-//                       ? 'bg-indigo-600 text-white'
-//                       : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100'
-//                   }`}
-//                 >
-//                   <p className="text-sm whitespace-pre-wrap break-words">
-//                     {message.content}
-//                   </p>
-//                 </div>
-//               </div>
-//             ))}
-//             {isLoading && (
-//               <div className="flex justify-start">
-//                 <div className="bg-gray-100 dark:bg-slate-800 rounded-2xl px-4 py-2">
-//                   <div className="flex gap-1">
-//                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-//                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-//                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-//                   </div>
-//                 </div>
-//               </div>
-//             )}
-//             <div ref={messagesEndRef} />
-//           </div>
-
-//           {/* Input Form */}
-//           <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 dark:border-slate-700">
-//             <div className="flex gap-2">
-//               <input
-//                 ref={inputRef}
-//                 type="text"
-//                 value={inputMessage}
-//                 onChange={(e) => setInputMessage(e.target.value)}
-//                 placeholder="Type your message..."
-//                 className="flex-1 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
-//                 disabled={isLoading}
-//               />
-//               <button
-//                 type="submit"
-//                 disabled={!inputMessage.trim() || isLoading}
-//                 className="bg-indigo-600 text-white rounded-lg px-4 py-2 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-//               >
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   className="h-5 w-5"
-//                   fill="none"
-//                   viewBox="0 0 24 24"
-//                   stroke="currentColor"
-//                 >
-//                   <path
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                     strokeWidth={2}
-//                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-//                   />
-//                 </svg>
-//               </button>
-//             </div>
-//           </form>
-//         </div>
-//       )}
-
-//       {/* Floating Button */}
-//       <button
-//         onClick={handleToggle}
-//         className={`fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 flex items-center justify-center z-40 ${
-//           isOpen ? 'rotate-180' : ''
-//         }`}
-//         aria-label="Toggle chatbot"
-//       >
-//         {isOpen ? (
-//           <svg
-//             xmlns="http://www.w3.org/2000/svg"
-//             className="h-8 w-8"
-//             fill="none"
-//             viewBox="0 0 24 24"
-//             stroke="currentColor"
-//           >
-//             <path
-//               strokeLinecap="round"
-//               strokeLinejoin="round"
-//               strokeWidth={2}
-//               d="M6 18L18 6M6 6l12 12"
-//             />
-//           </svg>
-//         ) : (
-//           <svg
-//             xmlns="http://www.w3.org/2000/svg"
-//             className="h-8 w-8"
-//             fill="none"
-//             viewBox="0 0 24 24"
-//             stroke="currentColor"
-//             strokeWidth={2}
-//           >
-//             {/* Robot Head */}
-//             <rect x="6" y="4" width="12" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
-//             {/* Left Eye */}
-//             <circle cx="9" cy="9" r="1.5" fill="currentColor" />
-//             {/* Right Eye */}
-//             <circle cx="15" cy="9" r="1.5" fill="currentColor" />
-//             {/* Mouth */}
-//             <path d="M9 13h6" strokeLinecap="round" strokeLinejoin="round" />
-//             {/* Antenna */}
-//             <circle cx="12" cy="4" r="1" fill="currentColor" />
-//             <path d="M12 3v-1" strokeLinecap="round" />
-//           </svg>
-//         )}
-//       </button>
-//     </>
-//   );
-// }
-
-// export default Chatbot;
-
-
-
-
-
-
-
-
-
-
-
-// //CHATGPT CODE
-// import { useState, useRef, useEffect } from 'react';
-// import { useAuth } from '../context/AuthContext';
-// import { chatbotAPI } from '../services/api';
-
-// function Chatbot() {
-//   const { token } = useAuth();
-
-//   const [isOpen, setIsOpen] = useState(false);
-//   const [messages, setMessages] = useState([
-//     {
-//       role: 'assistant',
-//       content: "Hello! I'm your AI assistant for MediaX. How can I help you today?",
-//     },
-//   ]);
-//   const [inputMessage, setInputMessage] = useState('');
-//   const [isLoading, setIsLoading] = useState(false);
-
-//   const messagesEndRef = useRef(null);
-//   const inputRef = useRef(null);
-
-//   /* =======================
-//      AUTO SCROLL
-//      ======================= */
-//   useEffect(() => {
-//     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-//   }, [messages]);
-
-//   /* =======================
-//      AUTO FOCUS
-//      ======================= */
-//   useEffect(() => {
-//     if (isOpen) {
-//       setTimeout(() => inputRef.current?.focus(), 100);
-//     }
-//   }, [isOpen]);
-
-//   /* =======================
-//      SEND MESSAGE
-//      ======================= */
-//   const handleSendMessage = async (e) => {
-//     e.preventDefault();
-//     if (!inputMessage.trim() || isLoading) return;
-
-//     if (!token) {
-//       setMessages(prev => [
-//         ...prev,
-//         { role: 'assistant', content: 'Please log in to use the chatbot.' },
-//       ]);
-//       return;
-//     }
-
-//     const userMessage = inputMessage.trim();
-//     setInputMessage('');
-//     setIsLoading(true);
-
-//     const nextMessages = [...messages, { role: 'user', content: userMessage }];
-//     setMessages(nextMessages);
-
-//     try {
-//       const conversationHistory = nextMessages.slice(-6).map(m => ({
-//         role: m.role,
-//         content: m.content,
-//       }));
-
-//       const response = await chatbotAPI.chat({
-//         message: userMessage,
-//         conversationHistory: conversationHistory.slice(0, -1),
-//       });
-
-//       setMessages(prev => [
-//         ...prev,
-//         { role: 'assistant', content: response.response },
-//       ]);
-//     } catch (err) {
-//       setMessages(prev => [
-//         ...prev,
-//         { role: 'assistant', content: 'AI is busy. Please try again.' },
-//       ]);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const handleClearChat = () => {
-//     setMessages([
-//       {
-//         role: 'assistant',
-//         content: "Hello! I'm your AI assistant for MediaX. How can I help you today?",
-//       },
-//     ]);
-//   };
-
-//   return (
-//     <>
-//       {/* CHAT WINDOW */}
-//       {isOpen && (
-//         <div
-//           className="
-//             fixed z-50 bg-white dark:bg-slate-900 flex flex-col
-//             inset-0 sm:inset-auto
-//             sm:bottom-24 sm:right-6
-//             w-full sm:w-96
-//             h-full sm:h-[600px]
-//             sm:rounded-2xl
-//             shadow-2xl border border-gray-200 dark:border-slate-700
-//           "
-//         >
-//           {/* HEADER */}
-//           <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-500 to-indigo-600 sm:rounded-t-2xl">
-//             <div>
-//               <h3 className="text-white font-semibold">AI Assistant</h3>
-//               <p className="text-indigo-100 text-xs">MediaX Support</p>
-//             </div>
-//             <div className="flex gap-3">
-//               <button onClick={handleClearChat} className="text-white text-lg">
-//                 🗑
-//               </button>
-//               <button onClick={() => setIsOpen(false)} className="text-white text-lg">
-//                 ✕
-//               </button>
-//             </div>
-//           </div>
-
-//           {/* MESSAGES */}
-//           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-//             {messages.map((msg, i) => (
-//               <div
-//                 key={i}
-//                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-//               >
-//                 <div
-//                   className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm ${
-//                     msg.role === 'user'
-//                       ? 'bg-indigo-600 text-white'
-//                       : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100'
-//                   }`}
-//                 >
-//                   {msg.content}
-//                 </div>
-//               </div>
-//             ))}
-
-//             {isLoading && (
-//               <div className="text-sm text-gray-500">AI is typing…</div>
-//             )}
-
-//             <div ref={messagesEndRef} />
-//           </div>
-
-//           {/* INPUT (Sticky on mobile) */}
-//           <form
-//             onSubmit={handleSendMessage}
-//             className="
-//               p-3 border-t border-gray-200 dark:border-slate-700
-//               sticky bottom-0 bg-white dark:bg-slate-900
-//             "
-//           >
-//             <div className="flex gap-2">
-//               <input
-//                 ref={inputRef}
-//                 value={inputMessage}
-//                 onChange={e => setInputMessage(e.target.value)}
-//                 placeholder="Type your message…"
-//                 disabled={isLoading}
-//                 className="
-//                   flex-1 px-4 py-2 rounded-lg border
-//                   bg-white dark:bg-slate-800
-//                   focus:ring-2 focus:ring-indigo-500
-//                 "
-//               />
-//               <button
-//                 type="submit"
-//                 disabled={!inputMessage.trim() || isLoading}
-//                 className="
-//                   bg-indigo-600 text-white px-4 py-2 rounded-lg
-//                   disabled:opacity-50
-//                 "
-//               >
-//                 ➤
-//               </button>
-//             </div>
-//           </form>
-//         </div>
-//       )}
-
-//       {/* FLOATING BUTTON */}
-//       <button
-//         onClick={() => setIsOpen(prev => !prev)}
-//         className="
-//           fixed bottom-6 right-6 z-40
-//           w-14 h-14 sm:w-16 sm:h-16
-//           bg-gradient-to-r from-indigo-500 to-indigo-600
-//           text-white rounded-full shadow-lg
-//           flex items-center justify-center
-//           hover:scale-110 transition
-//         "
-//       >
-//         🤖
-//       </button>
-//     </>
-//   );
-// }
-
-// export default Chatbot;
-
-
-
-
-
-
-
-
-
-
-// //CLAUDE CODE-1
-// import { useState, useRef, useEffect } from 'react';
-// import { useAuth } from '../context/AuthContext';
-// import { chatbotAPI } from '../services/api';
-
-// function Chatbot() {
-//   const { token } = useAuth();
-//   const [isOpen, setIsOpen] = useState(false);
-//   const [messages, setMessages] = useState([
-//     {
-//       role: 'assistant',
-//       content: 'Hello! I\'m your AI assistant for MediaX. How can I help you today?',
-//     },
-//   ]);
-//   const [inputMessage, setInputMessage] = useState('');
-//   const [isLoading, setIsLoading] = useState(false);
-//   const messagesEndRef = useRef(null);
-//   const inputRef = useRef(null);
-
-//   // Auto-scroll to bottom when new messages are added
-//   useEffect(() => {
-//     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-//   }, [messages]);
-
-//   // Focus input when chat opens
-//   useEffect(() => {
-//     if (isOpen && inputRef.current) {
-//       setTimeout(() => {
-//         inputRef.current?.focus();
-//       }, 100);
-//     }
-//   }, [isOpen]);
-
-//   const handleSendMessage = async (e) => {
-//     e.preventDefault();
-    
-//     if (!inputMessage.trim() || isLoading) return;
-
-//     if (!token) {
-//       setMessages((prev) => [
-//         ...prev,
-//         {
-//           role: 'assistant',
-//           content: 'Please log in to use the chatbot.',
-//         },
-//       ]);
-//       return;
-//     }
-
-//     const userMessage = inputMessage.trim();
-//     setInputMessage('');
-    
-//     // Add user message to chat
-//     const newMessages = [
-//       ...messages,
-//       { role: 'user', content: userMessage },
-//     ];
-//     setMessages(newMessages);
-//     setIsLoading(true);
-
-//     try {
-//       // Prepare conversation history (last 10 messages for context)
-//       const conversationHistory = newMessages
-//         .slice(-10)
-//         .map((msg) => ({
-//           role: msg.role,
-//           content: msg.content,
-//         }));
-
-//       const response = await chatbotAPI.chat({
-//         message: userMessage,
-//         conversationHistory: conversationHistory.slice(0, -1),
-//       });
-
-//       setMessages((prev) => [
-//         ...prev,
-//         {
-//           role: 'assistant',
-//           content: response.response,
-//         },
-//       ]);
-//     } catch (error) {
-//       setMessages((prev) => [
-//         ...prev,
-//         {
-//           role: 'assistant',
-//           content: error.message || 'Sorry, I encountered an error. Please try again.',
-//         },
-//       ]);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const handleToggle = () => {
-//     setIsOpen(!isOpen);
-//   };
-
-//   const handleClearChat = () => {
-//     setMessages([
-//       {
-//         role: 'assistant',
-//         content: 'Hello! I\'m your AI assistant for MediaX. How can I help you today?',
-//       },
-//     ]);
-//   };
-
-//   return (
-//     <>
-//       {/* Chat Window - Responsive */}
-//       {isOpen && (
-//         <div className="fixed inset-0 sm:inset-auto sm:bottom-20 sm:right-4 md:bottom-24 md:right-6 w-full h-full sm:w-[400px] sm:h-[600px] md:w-[420px] md:h-[650px] lg:w-[450px] lg:h-[680px] bg-white dark:bg-slate-900 sm:rounded-2xl shadow-2xl flex flex-col z-50 border-0 sm:border border-gray-200 dark:border-slate-700 transition-all duration-300 ease-out">
-//           {/* Header */}
-//           <div className="flex items-center justify-between p-4 sm:p-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-t-none sm:rounded-t-2xl">
-//             <div className="flex items-center gap-2 sm:gap-3">
-//               <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center">
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   viewBox="0 0 24 24"
-//                   fill="currentColor"
-//                   className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600"
-//                 >
-//                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-//                 </svg>
-//               </div>
-//               <div>
-//                 <h3 className="text-white font-semibold text-base sm:text-lg">AI Assistant</h3>
-//                 <p className="text-indigo-100 text-xs">MediaX Support</p>
-//               </div>
-//             </div>
-//             <div className="flex items-center gap-1 sm:gap-2">
-//               <button
-//                 onClick={handleClearChat}
-//                 className="text-white hover:text-indigo-200 transition-colors p-1 sm:p-1.5"
-//                 title="Clear chat"
-//               >
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   className="h-5 w-5"
-//                   fill="none"
-//                   viewBox="0 0 24 24"
-//                   stroke="currentColor"
-//                 >
-//                   <path
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                     strokeWidth={2}
-//                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-//                   />
-//                 </svg>
-//               </button>
-//               <button
-//                 onClick={handleToggle}
-//                 className="text-white hover:text-indigo-200 transition-colors p-1 sm:p-1.5"
-//                 title="Close chat"
-//               >
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   className="h-5 w-5"
-//                   fill="none"
-//                   viewBox="0 0 24 24"
-//                   stroke="currentColor"
-//                 >
-//                   <path
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                     strokeWidth={2}
-//                     d="M6 18L18 6M6 6l12 12"
-//                   />
-//                 </svg>
-//               </button>
-//             </div>
-//           </div>
-
-//           {/* Messages Container */}
-//           <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
-//             {messages.map((message, index) => (
-//               <div
-//                 key={index}
-//                 className={`flex ${
-//                   message.role === 'user' ? 'justify-end' : 'justify-start'
-//                 }`}
-//               >
-//                 <div
-//                   className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5 ${
-//                     message.role === 'user'
-//                       ? 'bg-indigo-600 text-white'
-//                       : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100'
-//                   }`}
-//                 >
-//                   <p className="text-sm sm:text-sm whitespace-pre-wrap break-words leading-relaxed">
-//                     {message.content}
-//                   </p>
-//                 </div>
-//               </div>
-//             ))}
-//             {isLoading && (
-//               <div className="flex justify-start">
-//                 <div className="bg-gray-100 dark:bg-slate-800 rounded-2xl px-4 py-2">
-//                   <div className="flex gap-1">
-//                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-//                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-//                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-//                   </div>
-//                 </div>
-//               </div>
-//             )}
-//             <div ref={messagesEndRef} />
-//           </div>
-
-//           {/* Input Form */}
-//           <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-//             <div className="flex gap-2">
-//               <input
-//                 ref={inputRef}
-//                 type="text"
-//                 value={inputMessage}
-//                 onChange={(e) => setInputMessage(e.target.value)}
-//                 placeholder="Type your message..."
-//                 className="flex-1 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 px-3 py-2 sm:px-4 sm:py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
-//                 disabled={isLoading}
-//               />
-//               <button
-//                 type="submit"
-//                 disabled={!inputMessage.trim() || isLoading}
-//                 className="bg-indigo-600 text-white rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-[44px]"
-//               >
-//                 <svg
-//                   xmlns="http://www.w3.org/2000/svg"
-//                   className="h-5 w-5"
-//                   fill="none"
-//                   viewBox="0 0 24 24"
-//                   stroke="currentColor"
-//                 >
-//                   <path
-//                     strokeLinecap="round"
-//                     strokeLinejoin="round"
-//                     strokeWidth={2}
-//                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-//                   />
-//                 </svg>
-//               </button>
-//             </div>
-//           </form>
-//         </div>
-//       )}
-
-//       {/* Floating Button - Responsive */}
-//       <button
-//         onClick={handleToggle}
-//         className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center z-40 ${
-//           isOpen ? 'rotate-180' : ''
-//         }`}
-//         aria-label="Toggle chatbot"
-//       >
-//         {isOpen ? (
-//           <svg
-//             xmlns="http://www.w3.org/2000/svg"
-//             className="h-7 w-7 sm:h-8 sm:w-8"
-//             fill="none"
-//             viewBox="0 0 24 24"
-//             stroke="currentColor"
-//           >
-//             <path
-//               strokeLinecap="round"
-//               strokeLinejoin="round"
-//               strokeWidth={2}
-//               d="M6 18L18 6M6 6l12 12"
-//             />
-//           </svg>
-//         ) : (
-//           <svg
-//             xmlns="http://www.w3.org/2000/svg"
-//             className="h-7 w-7 sm:h-8 sm:w-8"
-//             fill="none"
-//             viewBox="0 0 24 24"
-//             stroke="currentColor"
-//             strokeWidth={2}
-//           >
-//             <rect x="6" y="4" width="12" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
-//             <circle cx="9" cy="9" r="1.5" fill="currentColor" />
-//             <circle cx="15" cy="9" r="1.5" fill="currentColor" />
-//             <path d="M9 13h6" strokeLinecap="round" strokeLinejoin="round" />
-//             <circle cx="12" cy="4" r="1" fill="currentColor" />
-//             <path d="M12 3v-1" strokeLinecap="round" />
-//           </svg>
-//         )}
-//       </button>
-//     </>
-//   );
-// }
-
-// export default Chatbot;
-
-
-
-
-
-
-
-//CLAUDE CODE-2
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { chatbotAPI } from '../services/api';
+import { FaTrash, FaTimes, FaRobot, FaPaperPlane, FaMagic, FaUserSecret } from 'react-icons/fa';
 
 function Chatbot() {
   const { token } = useAuth();
@@ -832,31 +9,34 @@ function Chatbot() {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Hello! I\'m your AI assistant for MediaX. How can I help you today?',
+      content: "Protocol initialized. I'm your MediaX Neural Assistant. How can I assist your creative workflow today?",
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [messages, isLoading]);
 
-  // Focus input when chat opens
   useEffect(() => {
     if (isOpen && inputRef.current) {
       setTimeout(() => {
         inputRef.current?.focus();
-      }, 100);
+      }, 300);
     }
   }, [isOpen]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    
     if (!inputMessage.trim() || isLoading) return;
 
     if (!token) {
@@ -864,7 +44,7 @@ function Chatbot() {
         ...prev,
         {
           role: 'assistant',
-          content: 'Please log in to use the chatbot.',
+          content: 'Security Check: Please authenticate (login) to access neural processing layers.',
         },
       ]);
       return;
@@ -872,23 +52,16 @@ function Chatbot() {
 
     const userMessage = inputMessage.trim();
     setInputMessage('');
-    
-    // Add user message to chat
-    const newMessages = [
-      ...messages,
-      { role: 'user', content: userMessage },
-    ];
+
+    const newMessages = [...messages, { role: 'user', content: userMessage }];
     setMessages(newMessages);
     setIsLoading(true);
 
     try {
-      // Prepare conversation history (last 10 messages for context)
-      const conversationHistory = newMessages
-        .slice(-10)
-        .map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        }));
+      const conversationHistory = newMessages.slice(-10).map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }));
 
       const response = await chatbotAPI.chat({
         message: userMessage,
@@ -907,7 +80,7 @@ function Chatbot() {
         ...prev,
         {
           role: 'assistant',
-          content: error.message || 'Sorry, I encountered an error. Please try again.',
+          content: 'Link Interrupted: The neural core is temporarily unreachable. Please retry synchronization.',
         },
       ]);
     } finally {
@@ -915,115 +88,90 @@ function Chatbot() {
     }
   };
 
-  const handleToggle = () => {
-    setIsOpen(!isOpen);
-  };
+  const handleToggle = () => setIsOpen(!isOpen);
 
   const handleClearChat = () => {
     setMessages([
       {
         role: 'assistant',
-        content: 'Hello! I\'m your AI assistant for MediaX. How can I help you today?',
+        content: 'Neural memory purged. Initializing fresh protocol. How can I help?',
       },
     ]);
   };
 
   return (
     <>
-      {/* Chat Window - Responsive */}
+      {/* Chat Window */}
       {isOpen && (
-        <div className="fixed inset-0 sm:inset-auto sm:bottom-20 sm:right-4 md:bottom-24 md:right-6 w-full h-full sm:w-[400px] sm:h-[500px] md:w-[420px] md:h-[550px] lg:w-[450px] lg:h-[580px] bg-white dark:bg-slate-900 sm:rounded-2xl shadow-2xl flex flex-col z-50 border-0 sm:border border-gray-200 dark:border-slate-700 transition-all duration-300 ease-out">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-8 w-full h-full sm:w-[420px] sm:h-[600px] bg-white/90 dark:bg-slate-950/90 backdrop-blur-3xl sm:rounded-[40px] shadow-[0_32px_120px_-20px_rgba(79,70,229,0.4)] flex flex-col z-[3000] border-0 sm:border border-white/20 dark:border-slate-800/50 transition-all duration-500 overflow-hidden animate-in slide-in-from-bottom-12 fade-in">
+
+          {/* Internal Blurs */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -z-10 translate-x-1/3 -translate-y-1/3"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] -z-10 -translate-x-1/3 translate-y-1/3"></div>
+
           {/* Header */}
-          <div className="flex items-center justify-between p-4 sm:p-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-t-none sm:rounded-t-2xl">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600"
-                >
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
+          <div className="flex items-center justify-between p-6 bg-gradient-to-r from-indigo-600 to-purple-600">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/20 shadow-xl">
+                <FaRobot size={24} />
               </div>
               <div>
-                <h3 className="text-white font-semibold text-base sm:text-lg">AI Assistant</h3>
-                <p className="text-indigo-100 text-xs">MediaX Support</p>
+                <h3 className="text-white font-black uppercase tracking-widest text-sm leading-none mb-1">Neural Core</h3>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+                  <p className="text-indigo-100 text-[10px] font-bold uppercase tracking-widest leading-none">System Active</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-3">
               <button
                 onClick={handleClearChat}
-                className="text-white hover:text-indigo-200 transition-colors p-1 sm:p-1.5"
-                title="Clear chat"
+                className="w-10 h-10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                title="Wipe Memory"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
+                <FaTrash size={16} />
               </button>
               <button
                 onClick={handleToggle}
-                className="text-white hover:text-indigo-200 transition-colors p-1 sm:p-1.5"
-                title="Close chat"
+                className="w-10 h-10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                title="Deactivate"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <FaTimes size={18} />
               </button>
             </div>
           </div>
 
           {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
             {messages.map((message, index) => (
               <div
                 key={index}
-                className={`flex ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}
               >
                 <div
-                  className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5 ${
-                    message.role === 'user'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-slate-100'
-                  }`}
+                  className={`max-w-[85%] rounded-[24px] px-6 py-4 shadow-sm border ${message.role === 'user'
+                    ? 'bg-indigo-600 text-white border-indigo-500 rounded-tr-none'
+                    : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 border-slate-100 dark:border-slate-800 rounded-tl-none'
+                    }`}
                 >
-                  <p className="text-sm sm:text-sm whitespace-pre-wrap break-words leading-relaxed">
+                  <div className="flex items-center gap-2 mb-2 opacity-50">
+                    {message.role === 'user' ? <FaUserSecret size={10} /> : <FaMagic size={10} />}
+                    <span className="text-[8px] font-black uppercase tracking-widest">{message.role === 'user' ? 'Identify' : 'Neural'}</span>
+                  </div>
+                  <p className="text-sm font-bold whitespace-pre-wrap break-words leading-relaxed uppercase tracking-tight">
                     {message.content}
                   </p>
                 </div>
               </div>
             ))}
+
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 dark:bg-slate-800 rounded-2xl px-4 py-2">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              <div className="flex justify-start animate-in fade-in zoom-in-95">
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[24px] rounded-tl-none px-6 py-4">
+                  <div className="flex gap-2">
+                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '400ms' }}></div>
                   </div>
                 </div>
               </div>
@@ -1032,81 +180,44 @@ function Chatbot() {
           </div>
 
           {/* Input Form */}
-          <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-            <div className="flex gap-2">
+          <form onSubmit={handleSendMessage} className="p-6 bg-slate-50/50 dark:bg-slate-950/50 border-t border-slate-100 dark:border-slate-800/50">
+            <div className="relative group">
               <input
                 ref={inputRef}
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type your message..."
-                className="flex-1 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 px-3 py-2 sm:px-4 sm:py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                placeholder="Query Neural Core..."
+                className="w-full pl-6 pr-16 py-5 rounded-[24px] bg-white dark:bg-slate-900 border-2 border-transparent focus:border-indigo-600 outline-none font-black text-xs text-slate-800 dark:text-slate-100 transition-all shadow-inner uppercase tracking-widest placeholder:text-slate-400"
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isLoading}
-                className="bg-indigo-600 text-white rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-[44px]"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 disabled:opacity-30 disabled:hover:bg-indigo-600 transition-all flex items-center justify-center shadow-lg shadow-indigo-600/30 active:scale-90"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
+                <FaPaperPlane size={14} className={isLoading ? 'animate-pulse' : ''} />
               </button>
             </div>
+            <p className="text-center mt-4 text-[8px] font-black text-slate-400 uppercase tracking-[2px]">Encrypted Neural Link Active</p>
           </form>
         </div>
       )}
 
-      {/* Floating Button - Responsive */}
+      {/* Floating Button */}
       <button
         onClick={handleToggle}
-        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center z-40 ${
-          isOpen ? 'rotate-180' : ''
-        }`}
-        aria-label="Toggle chatbot"
+        className={`fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-[24px] shadow-2xl hover:scale-110 active:scale-90 transition-all duration-500 flex items-center justify-center z-[2500] group ${isOpen ? 'rotate-[360deg] rounded-full' : ''
+          }`}
+        aria-label="Toggle Neural Hub"
       >
         {isOpen ? (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-7 w-7 sm:h-8 sm:w-8"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <FaTimes size={24} />
         ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-7 w-7 sm:h-8 sm:w-8"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <rect x="6" y="4" width="12" height="14" rx="2" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="9" cy="9" r="1.5" fill="currentColor" />
-            <circle cx="15" cy="9" r="1.5" fill="currentColor" />
-            <path d="M9 13h6" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="12" cy="4" r="1" fill="currentColor" />
-            <path d="M12 3v-1" strokeLinecap="round" />
-          </svg>
+          <div className="relative">
+            <FaRobot size={28} className="group-hover:rotate-12 transition-transform" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-indigo-600 animate-pulse"></div>
+          </div>
         )}
       </button>
     </>

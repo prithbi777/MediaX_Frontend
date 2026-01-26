@@ -276,6 +276,21 @@ export const userAPI = {
     apiRequest('/users/me', {
       method: 'DELETE',
     }),
+
+  followUser: (userId) =>
+    apiRequest(`/users/${userId}/follow`, {
+      method: 'POST',
+    }),
+
+  unfollowUser: (userId) =>
+    apiRequest(`/users/${userId}/unfollow`, {
+      method: 'POST',
+    }),
+
+  getFollowStatus: (userId) =>
+    apiRequest(`/users/${userId}/follow-status`, {
+      method: 'GET',
+    }),
 };
 
 /* ===============================

@@ -7,7 +7,6 @@ import {
 
 import Login from './pages/Login'
 import Signup from './pages/Signup'
-import Dashboard from './pages/Dashboard'
 import VerifyEmail from './pages/VerifyEmail'
 import Profile from './pages/Profile'
 import Home from './pages/Home'
@@ -33,7 +32,7 @@ const ProtectedRoute = ({ children }) => {
 
 const PublicRoute = ({ children }) => {
   const token = getStoredToken()
-  return token ? <Navigate to="/dashboard" replace /> : children
+  return token ? <Navigate to="/" replace /> : children
 }
 
 const AdminRoute = ({ children }) => {
@@ -42,7 +41,7 @@ const AdminRoute = ({ children }) => {
 
   if (!token) return <Navigate to="/login" replace />
   if (!user) return null
-  return user.role === 'admin' ? children : <Navigate to="/dashboard" replace />
+  return user.role === 'admin' ? children : <Navigate to="/" replace />
 }
 
 function App() {
@@ -70,14 +69,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+
 
             <Route
               path="/profile"
