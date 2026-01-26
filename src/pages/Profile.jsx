@@ -275,34 +275,34 @@ function Profile() {
           {activeTab === 'following' && renderUserList(user?.following || [], 'following')}
 
           {activeTab === 'settings' && (
-            <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 p-8 sm:p-12 rounded-[40px] shadow-xl border border-slate-50 dark:border-slate-800 transition-all">
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-10 flex items-center gap-4">
+            <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 p-6 sm:p-12 rounded-[32px] sm:rounded-[40px] shadow-xl border border-slate-50 dark:border-slate-800 transition-all">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-8 sm:mb-10 flex items-center gap-4">
                 <FaEdit className="text-indigo-600" /> Account Settings
               </h3>
 
               <div className="space-y-8">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
-                  <div className="px-5 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-500 dark:text-slate-400 font-bold border border-slate-100 dark:border-slate-700">{user?.email}</div>
+                  <div className="px-5 py-4 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-500 dark:text-slate-400 font-bold border border-slate-100 dark:border-slate-700 break-all">{user?.email}</div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Display Name</label>
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full px-5 py-4 bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-100 dark:border-slate-800 focus:border-indigo-500 outline-none font-bold text-slate-800 dark:text-slate-100 transition-all shadow-inner" placeholder="Your Name" />
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-100 dark:border-slate-800 focus:border-indigo-500 outline-none font-bold text-slate-800 dark:text-slate-100 transition-all shadow-inner text-sm sm:text-base" placeholder="Your Name" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Birth Date</label>
-                  <input type="date" value={editDob} onChange={(e) => setEditDob(e.target.value)} className="w-full px-5 py-4 bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-100 dark:border-slate-800 focus:border-indigo-500 outline-none font-bold text-slate-800 dark:text-slate-100 transition-all shadow-inner" />
+                  <input type="date" value={editDob} onChange={(e) => setEditDob(e.target.value)} className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-100 dark:border-slate-800 focus:border-indigo-500 outline-none font-bold text-slate-800 dark:text-slate-100 transition-all shadow-inner text-sm sm:text-base" />
                 </div>
 
                 <div className="pt-6 flex flex-col gap-4">
-                  <button onClick={handleSaveProfile} disabled={saving} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[3px] text-sm hover:bg-indigo-700 shadow-xl shadow-indigo-600/30 transition-all active:scale-[0.98] disabled:opacity-50">
+                  <button onClick={handleSaveProfile} disabled={saving} className="w-full py-4 sm:py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[2px] sm:tracking-[3px] text-sm hover:bg-indigo-700 shadow-xl shadow-indigo-600/30 transition-all active:scale-[0.98] disabled:opacity-50">
                     {saving ? 'Synchronizing...' : 'Save Changes'}
                   </button>
 
-                  <div className="grid grid-cols-2 gap-4 mt-6">
-                    <Link to="/forgot-password" size={14} className="flex items-center justify-center gap-3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 sm:mt-6">
+                    <Link to="/forgot-password" title="Security Settings" className="flex items-center justify-center gap-3 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
                       <FaKey /> Security
                     </Link>
                     <button onClick={handleDeleteAccount} disabled={deleting} className="flex items-center justify-center gap-3 py-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all">
