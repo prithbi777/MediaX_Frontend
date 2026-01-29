@@ -16,6 +16,7 @@ import UserProfile from './pages/UserProfile'
 import VideoPage from './pages/VideoPage'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import Notifications from './pages/Notifications'
 import Navbar from './components/Navbar'
 import { getStoredToken } from './services/api'
 import { useAuth } from './context/AuthContext'
@@ -85,6 +86,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MyVideos />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <Notifications />
                 </ProtectedRoute>
               }
             />

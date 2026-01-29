@@ -365,3 +365,29 @@ export const chatbotAPI = {
       body: JSON.stringify({ message, conversationHistory }),
     }),
 };
+
+/* ===============================
+  NOTIFICATION APIs
+  =============================== */
+
+export const notificationsAPI = {
+  list: () =>
+    apiRequest('/notifications', {
+      method: 'GET',
+    }),
+
+  markRead: (id) =>
+    apiRequest(`/notifications/${id}/read`, {
+      method: 'PATCH',
+    }),
+
+  markAllRead: () =>
+    apiRequest('/notifications/read-all', {
+      method: 'PATCH',
+    }),
+
+  remove: (id) =>
+    apiRequest(`/notifications/${id}`, {
+      method: 'DELETE',
+    }),
+};

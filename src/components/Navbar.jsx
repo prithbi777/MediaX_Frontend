@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom"
-import { FaBars, FaMoon, FaSun, FaTimes, FaUserCircle, FaSearch, FaUser, FaPlayCircle } from "react-icons/fa"
+import { FaBars, FaMoon, FaSun, FaTimes, FaUserCircle, FaSearch, FaUser, FaPlayCircle, FaBell } from "react-icons/fa"
 import { useAuth } from "../context/AuthContext"
 import { useEffect, useState } from "react"
 import { useTheme } from "../context/ThemeContext"
+import { notificationsAPI } from "../services/api"
 
 const Navbar = () => {
   const { token, user, logout } = useAuth()
@@ -12,6 +13,7 @@ const Navbar = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const handleLogout = () => {
     logout()
@@ -26,6 +28,25 @@ const Navbar = () => {
       setIsMobileMenuOpen(false)
     }
   }
+
+  const fetchUnreadCount = async () => {
+    if (!token) return
+    try {
+      const data = await notificationsAPI.list()
+      if (data.success) {
+        const unread = data.notifications.filter(n => !n.read).length
+        setUnreadCount(unread)
+      }
+    } catch (err) {
+      console.error("Failed to fetch unread count", err)
+    }
+  }
+
+  useEffect(() => {
+    fetchUnreadCount()
+    const interval = setInterval(fetchUnreadCount, 30000) // Poll every 30s
+    return () => clearInterval(interval)
+  }, [token, location.pathname])
 
   const isActive = (path) => location.pathname === path
 
@@ -62,6 +83,23 @@ const Navbar = () => {
           >
             {theme === 'dark' ? <FaSun size={16} /> : <FaMoon size={16} />}
           </button>
+
+          {token && (
+            <Link
+              to="/notifications"
+              className={`relative p-2.5 rounded-xl transition-all active:scale-95 ${isActive('/notifications')
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:scale-110'
+                }`}
+            >
+              <FaBell size={16} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-bounce">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           {token ? (
             <div className="flex items-center gap-6">
@@ -117,6 +155,20 @@ const Navbar = () => {
           <button onClick={toggleTheme} className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 transition-all">
             {theme === 'dark' ? <FaSun size={18} /> : <FaMoon size={18} />}
           </button>
+          {token && (
+            <Link
+              to="/notifications"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="relative p-3 rounded-xl bg-slate-100 dark:bg-slate-800 transition-all"
+            >
+              <FaBell size={18} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-3 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"

@@ -10,6 +10,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "concurrently": "^9.2.1",
+    "date-fns": "^4.1.0",
     "express-rate-limit": "^8.2.1",
     "nodemailer": "^7.0.11",
     "react": "^19.2.0",
