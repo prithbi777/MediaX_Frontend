@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { FaBell, FaHeart, FaComment, FaCloudUploadAlt, FaCheck, FaTrash, FaCircle } from "react-icons/fa"
+import { FaBell, FaHeart, FaComment, FaCloudUploadAlt, FaCheck, FaTrash, FaCircle, FaUserPlus } from "react-icons/fa"
 import { notificationsAPI } from "../services/api"
 import { formatDistanceToNow } from "date-fns"
 
@@ -63,6 +63,7 @@ const Notifications = () => {
             case 'video_comment': return <FaComment className="text-blue-500" />
             case 'comment_like': return <FaHeart className="text-rose-500" size={12} />
             case 'following_upload': return <FaCloudUploadAlt className="text-indigo-500" />
+            case 'new_follower': return <FaUserPlus className="text-emerald-500" />
             default: return <FaBell className="text-slate-400" />
         }
     }
@@ -74,6 +75,7 @@ const Notifications = () => {
             case 'video_comment': return <span><b>{senderName}</b> commented on your video</span>
             case 'comment_like': return <span><b>{senderName}</b> liked your comment</span>
             case 'following_upload': return <span><b>{senderName}</b> uploaded a new video</span>
+            case 'new_follower': return <span><b>{senderName}</b> started following you</span>
             default: return <span>New interaction from <b>{senderName}</b></span>
         }
     }
@@ -82,6 +84,8 @@ const Notifications = () => {
         handleMarkRead(notification._id)
         if (notification.video) {
             navigate(`/video/${notification.video._id || notification.video}`)
+        } else if (notification.type === 'new_follower' && notification.sender) {
+            navigate(`/user/${notification.sender._id || notification.sender}`)
         }
     }
 
@@ -134,8 +138,8 @@ const Notifications = () => {
                             key={notification._id}
                             onClick={() => handleNotificationClick(notification)}
                             className={`group relative flex items-center gap-4 p-5 rounded-[2rem] transition-all cursor-pointer border ${notification.read
-                                    ? 'bg-white/50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800/50 grayscale-[0.5] opacity-80'
-                                    : 'bg-white dark:bg-slate-900 border-indigo-100 dark:border-indigo-900/30 shadow-lg shadow-indigo-600/5 scale-[1.02]'
+                                ? 'bg-white/50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800/50 grayscale-[0.5] opacity-80'
+                                : 'bg-white dark:bg-slate-900 border-indigo-100 dark:border-indigo-900/30 shadow-lg shadow-indigo-600/5 scale-[1.02]'
                                 } hover:scale-[1.01] hover:border-indigo-300 dark:hover:border-indigo-700`}
                         >
                             <div className="relative">
