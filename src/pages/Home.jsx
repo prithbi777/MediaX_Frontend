@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { videosAPI } from '../services/api'
+import { videosAPI, photosAPI } from '../services/api'
 import MEME from '../assets/MEME.png'
 import { useAuth } from '../context/AuthContext'
-import { FaPlay, FaRocket, FaUserPlus, FaSignInAlt, FaMagic } from 'react-icons/fa'
+import { FaPlay, FaRocket, FaUserPlus, FaSignInAlt, FaMagic, FaCamera, FaImage } from 'react-icons/fa'
 
 function Home() {
   const { token, user } = useAuth()
@@ -11,36 +11,48 @@ function Home() {
   const [searchParams] = useSearchParams()
 
   const [videos, setVideos] = useState([])
+  const [photos, setPhotos] = useState([])
+  const [creators, setCreators] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isSmallScreen, setIsSmallScreen] = useState(false)
+  const [activeTab, setActiveTab] = useState('videos')
 
   const userName = (user?.name || '').trim()
   const isAuthLoading = Boolean(token) && !user
   const searchQuery = searchParams.get('search') || ''
 
-  const fetchVideos = async (search = '') => {
+  const fetchContent = async (search = '') => {
     setError('')
     setLoading(true)
     try {
-      const res = await videosAPI.list(search)
-      setVideos(res.videos || [])
+      // Parallel fetch for better performance
+      const [videosRes, photosRes] = await Promise.all([
+        videosAPI.list(search),
+        photosAPI.list(search)
+      ])
+
+      setVideos(videosRes.videos || [])
+      setCreators(videosRes.creators || []) // Creators usually come from video search or we can unify. Video search result has creators.
+      setPhotos(photosRes.photos || [])
+
     } catch (e) {
-      setError(e.message || 'Failed to load videos')
+      setError(e.message || 'Failed to load content')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchVideos(searchQuery)
+    fetchContent(searchQuery)
 
     const es = videosAPI.createEventsSource()
     es.onmessage = (evt) => {
       try {
         const data = JSON.parse(evt.data)
         if (data?.type === 'videosUpdated') {
-          fetchVideos()
+          // Only re-fetch if needed
+          fetchContent(searchQuery)
         }
       } catch {
         // ignore
@@ -63,7 +75,8 @@ function Home() {
     return () => mq.removeListener(update)
   }, [])
 
-  const sorted = useMemo(() => videos, [videos])
+  const sortedVideos = useMemo(() => videos, [videos])
+  const sortedPhotos = useMemo(() => photos, [photos])
 
   // --- LANDING PAGE RENDERING (!token) ---
   if (!token) {
@@ -131,7 +144,7 @@ function Home() {
   // --- LOGGED IN USER VIEW (token === true) ---
   return (
     <div className="w-full max-w-7xl mb-36 mx-auto px-4">
-      <div className="mb-20 pt-10">
+      <div className="mb-12 pt-10">
         <div
           className={`text-center sm:text-lg font-black transition-colors mb-4 ${isAuthLoading
             ? 'text-slate-600 dark:text-slate-300 opacity-80 animate-pulse'
@@ -147,9 +160,34 @@ function Home() {
             <p className='text-4xl font-black tracking-tighter'>Welcome to the Hub</p>
           )}
         </div>
-        <h2 className="text-center text-xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mt-8">
-          The Masterpiece Collections
-        </h2>
+
+        {/* TABS */}
+        <div className="flex justify-center gap-8 mt-12 border-b border-slate-200 dark:border-slate-800/50">
+          <button
+            onClick={() => setActiveTab('videos')}
+            className={`pb-4 px-4 text-sm font-black uppercase tracking-[3px] flex items-center gap-2 transition-all relative ${activeTab === 'videos'
+              ? 'text-indigo-600 dark:text-indigo-400'
+              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+              }`}
+          >
+            <FaPlay /> Videos
+            {activeTab === 'videos' && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 dark:bg-indigo-400 rounded-t-full shadow-[0_-2px_10px_rgba(79,70,229,0.5)]"></div>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('photos')}
+            className={`pb-4 px-4 text-sm font-black uppercase tracking-[3px] flex items-center gap-2 transition-all relative ${activeTab === 'photos'
+              ? 'text-purple-600 dark:text-purple-400'
+              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+              }`}
+          >
+            <FaCamera /> Photos
+            {activeTab === 'photos' && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-600 dark:bg-purple-400 rounded-t-full shadow-[0_-2px_10px_rgba(147,51,234,0.5)]"></div>
+            )}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -162,56 +200,181 @@ function Home() {
       {loading ? (
         <div className="py-32 flex flex-col items-center justify-center gap-6">
           <div className="w-12 h-12 border-4 border-indigo-600/20 border-t-indigo-600 rounded-full animate-spin"></div>
-          <p className="text-xs font-black uppercase tracking-[4px] text-slate-400">Calibrating Frames...</p>
+          <p className="text-xs font-black uppercase tracking-[4px] text-slate-400">Calibrating Content...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {sorted.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => navigate(`/video/${v.id}`)}
-              className="group text-left rounded-[32px] bg-white dark:bg-slate-900 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-slate-100 dark:border-slate-800"
+        <div className="space-y-12">
+          {/* Creators Section (Always visible if search matches) */}
+          {creators.length > 0 && (
+            <div
+              className="space-y-6 !outline-none border-none shadow-none ring-0 focus:ring-0 focus:outline-none"
+              tabIndex="-1"
+              style={{ outline: 'none' }}
             >
-              <div className="aspect-video bg-slate-100 dark:bg-slate-800 transition-colors relative overflow-hidden">
-                <img
-                  src={v.thumbnailUrl}
-                  alt={v.title}
-                  className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center duration-300">
-                  <div className="bg-white/20 backdrop-blur-md p-5 rounded-full border border-white/30 transform scale-50 group-hover:scale-100 transition-all duration-500">
-                    <FaPlay className="text-white ml-1" size={24} />
-                  </div>
-                </div>
+              <h3 className="text-xl font-black text-slate-800 dark:text-slate-200 flex items-center gap-2 animate-in slide-in-from-left-4 duration-500">
+                <FaUserPlus className="text-indigo-600" />
+                Creators
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 animate-in slide-in-from-left-4 duration-700">
+                {creators.map(creator => (
+                  <Link
+                    key={creator.id}
+                    to={`/user/${creator.id}`}
+                    className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col items-center gap-3 text-center group"
+                  >
+                    <div className="relative">
+                      {creator.photo ? (
+                        <img src={creator.photo} alt={creator.name} className="w-16 h-16 rounded-2xl object-cover ring-2 ring-indigo-100 dark:ring-indigo-900/30 group-hover:ring-indigo-500 transition-all" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xl font-black">
+                          {creator.name.charAt(0)}
+                        </div>
+                      )}
+                      {creator.isFollowed && (
+                        <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full border-2 border-white dark:border-slate-900">
+                          FOLLOWING
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-sm line-clamp-1">{creator.name}</h4>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{creator.followersCount} Followers</p>
+                    </div>
+                  </Link>
+                ))}
               </div>
-              <div className="p-6">
-                <p className="font-black text-xl text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                  {v.title}
-                </p>
-                <div className="flex items-center gap-3 mt-4">
-                  {v.uploaderAvatar ? (
-                    <img src={v.uploaderAvatar} className="w-6 h-6 rounded-full" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-[8px] text-white">{(v.uploaderName || 'U').charAt(0)}</div>
-                  )}
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{v.uploaderName || 'Unknown Creator'}</span>
-                </div>
+            </div>
+          )}
 
-                <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-50 dark:border-slate-800/50">
-                  <p className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">
-                    {v.createdAt ? new Date(v.createdAt).toLocaleDateString() : ''}
-                  </p>
-                  {v.likesCount > 0 && (
-                    <p className="flex items-center gap-1 font-black text-[10px] text-red-500 uppercase tracking-widest">
-                      ❤️ {v.likesCount}
-                    </p>
-                  )}
-                </div>
+          {/* Videos Grid */}
+          {activeTab === 'videos' && (
+            <div>
+              {creators.length > 0 && (
+                <h3 className="text-xl font-black text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
+                  <FaPlay className="text-indigo-600" />
+                  Videos
+                </h3>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {sortedVideos.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => navigate(`/video/${v.id}`)}
+                    className="group text-left rounded-[32px] bg-white dark:bg-slate-900 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-slate-100 dark:border-slate-800"
+                  >
+                    <div className="aspect-video bg-slate-100 dark:bg-slate-800 transition-colors relative overflow-hidden">
+                      <img
+                        src={v.thumbnailUrl}
+                        alt={v.title}
+                        className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center duration-300">
+                        <div className="bg-white/20 backdrop-blur-md p-5 rounded-full border border-white/30 transform scale-50 group-hover:scale-100 transition-all duration-500">
+                          <FaPlay className="text-white ml-1" size={24} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <p className="font-black text-xl text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                        {v.title}
+                      </p>
+                      <div className="flex items-center gap-3 mt-4">
+                        {v.uploaderAvatar ? (
+                          <img src={v.uploaderAvatar} className="w-6 h-6 rounded-full" />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-[8px] text-white">{(v.uploaderName || 'U').charAt(0)}</div>
+                        )}
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{v.uploaderName || 'Unknown Creator'}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-50 dark:border-slate-800/50">
+                        <p className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">
+                          {v.createdAt ? new Date(v.createdAt).toLocaleDateString() : ''}
+                        </p>
+                        {v.likesCount > 0 && (
+                          <p className="flex items-center gap-1 font-black text-[10px] text-red-500 uppercase tracking-widest">
+                            ❤️ {v.likesCount}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+                {sortedVideos.length === 0 && !loading && (
+                  <div className="col-span-full py-20 text-center">
+                    <p className="text-slate-400 font-bold uppercase tracking-widest">No videos found</p>
+                  </div>
+                )}
               </div>
-            </button>
-          ))}
+            </div>
+          )}
+
+          {/* Photos Grid */}
+          {activeTab === 'photos' && (
+            <div>
+              {creators.length > 0 && (
+                <h3 className="text-xl font-black text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
+                  <FaCamera className="text-purple-600" />
+                  Photos
+                </h3>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {sortedPhotos.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => navigate(`/photo/${p.id}`)}
+                    className="group text-left rounded-[32px] bg-white dark:bg-slate-900 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-slate-100 dark:border-slate-800"
+                  >
+                    <div className="aspect-square bg-slate-100 dark:bg-slate-800 transition-colors relative overflow-hidden">
+                      <img
+                        src={p.imageUrl}
+                        alt={p.caption || 'Photo'}
+                        className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center duration-300">
+                        <div className="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30 transform scale-50 group-hover:scale-100 transition-all duration-500">
+                          <FaImage className="text-white" size={24} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <p className="font-black text-lg text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                        {p.caption || 'Untitled Photo'}
+                      </p>
+                      <div className="flex items-center gap-3 mt-4">
+                        {p.uploaderAvatar ? (
+                          <img src={p.uploaderAvatar} className="w-6 h-6 rounded-full" />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-[8px] text-white">{(p.uploaderName || 'U').charAt(0)}</div>
+                        )}
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{p.uploaderName || 'Unknown Creator'}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-50 dark:border-slate-800/50">
+                        <p className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">
+                          {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''}
+                        </p>
+                        {p.likesCount > 0 && (
+                          <p className="flex items-center gap-1 font-black text-[10px] text-red-500 uppercase tracking-widest">
+                            ❤️ {p.likesCount}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+                {sortedPhotos.length === 0 && !loading && (
+                  <div className="col-span-full py-20 text-center">
+                    <p className="text-slate-400 font-bold uppercase tracking-widest">No photos found</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

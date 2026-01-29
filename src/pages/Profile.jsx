@@ -1,19 +1,21 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { userAPI, videosAPI } from '../services/api'
+import { userAPI, videosAPI, photosAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { FaEdit, FaSignOutAlt, FaTrash, FaKey, FaChevronLeft } from 'react-icons/fa'
 
 function Profile() {
   const { logout, refreshUser, setUser: setAuthUser } = useAuth()
   const [user, setUser] = useState(null)
-  const [videos, setVideos] = useState([])
+
+  const [content, setContent] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState('videos') // 'videos', 'followers', 'following', 'settings'
+  const [activeTab, setActiveTab] = useState('contents') // 'contents', 'followers', 'following', 'settings'
 
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState('')
+  const [editBio, setEditBio] = useState('')
   const [editDob, setEditDob] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
@@ -24,17 +26,35 @@ function Profile() {
   const fetchMyData = async () => {
     try {
       const res = await userAPI.getMe()
+      // res.user now has videoCount and photoCount (added in backend/routes/users.js)
       setUser(res.user)
       setAuthUser(res.user)
+      if (res.user?.bio) setEditBio(res.user.bio)
 
       // Fetch my videos
       const videosRes = await videosAPI.getUserVideos()
-      setVideos(videosRes.videos || [])
+      const myVideos = (videosRes.videos || []).filter(v => {
+        const vUid = v.uploadedBy?._id || v.uploadedBy
+        return String(vUid) === String(res.user.id)
+      }).map(v => ({ ...v, type: 'video' }))
 
-      // Update local user state with the precise personal count from the same request
-      if (res.user) {
-        setUser({ ...res.user, videoCount: videosRes.personalVideoCount || 0 })
+      // Fetch my photos
+      // We filter list() for now as we did elsewhere
+      let myPhotos = []
+      try {
+        const photosRes = await photosAPI.list()
+        myPhotos = (photosRes.photos || []).filter(p => {
+          const uId = p.uploadedBy?._id || p.uploadedBy
+          // Match with res.user.id
+          return String(uId) === String(res.user.id)
+        }).map(p => ({ ...p, type: 'photo', title: p.caption || 'Untitled' }))
+      } catch (err) {
+        console.error("Failed to fetch photos", err)
       }
+
+      // Combine and Sort
+      const allContent = [...myVideos, ...myPhotos].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      setContent(allContent)
 
       setLoading(false)
     } catch (e) {
@@ -58,6 +78,7 @@ function Profile() {
     try {
       const res = await userAPI.updateMe({
         name: editName,
+        bio: editBio || '',
         dob: editDob || null,
       })
       setUser(res.user)
@@ -178,11 +199,13 @@ function Profile() {
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-5 mb-8">
                 <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight">{user?.name}</h1>
-                <div className="flex gap-2">
+                {user?.bio && <p className="text-slate-500 dark:text-slate-400 font-medium text-sm sm:text-base mt-2 max-w-lg">{user.bio}</p>}
+                <div className="flex gap-2 mt-4">
                   <button
                     onClick={() => {
                       setIsEditing(true);
                       setEditName(user.name);
+                      setEditBio(user.bio || '');
                       setEditDob(dobValue);
                       setActiveTab('settings');
                     }}
@@ -200,9 +223,9 @@ function Profile() {
               </div>
 
               <div className="grid grid-cols-3 gap-2 sm:gap-16 mb-8 px-2 sm:px-0">
-                <button onClick={() => setActiveTab('videos')} className="flex flex-col items-center md:items-start group min-w-0">
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{user?.videoCount || 0}</span>
-                  <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Videos</span>
+                <button onClick={() => setActiveTab('contents')} className="flex flex-col items-center md:items-start group min-w-0">
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{(user?.videoCount || 0) + (user?.photoCount || 0)}</span>
+                  <span className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Contents</span>
                 </button>
                 <button onClick={() => setActiveTab('followers')} className="flex flex-col items-center md:items-start group min-w-0">
                   <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">{user?.followers?.length || 0}</span>
@@ -224,7 +247,7 @@ function Profile() {
 
       <div className="space-y-10">
         <div className="flex justify-start sm:justify-center gap-6 sm:gap-10 border-b border-slate-200 dark:border-slate-800 overflow-x-auto no-scrollbar scroll-smooth">
-          {['videos', 'followers', 'following', 'settings'].map((tab) => (
+          {['contents', 'followers', 'following', 'settings'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -240,29 +263,43 @@ function Profile() {
         </div>
 
         <div className="min-h-[400px]">
-          {activeTab === 'videos' && (
-            videos.length === 0 ? (
+          {activeTab === 'contents' && (
+            content.length === 0 ? (
               <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-[32px] border border-dashed border-slate-200 dark:border-slate-800">
-                <p className="text-xl font-black text-slate-300">You haven't uploaded any videos yet.</p>
+                <p className="text-xl font-black text-slate-300">You haven't uploaded any content yet.</p>
                 <Link to="/my-videos" className="inline-block mt-6 px-10 py-3 bg-indigo-600 text-white rounded-full font-black uppercase text-xs tracking-widest hover:bg-indigo-700 transition-colors">Start Creating</Link>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {videos.map((v) => (
-                  <button key={v.id} onClick={() => navigate(`/video/${v.id}`)} className="group relative bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-50 dark:border-slate-800">
-                    <div className="aspect-video relative overflow-hidden">
-                      <img src={v.thumbnailUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" alt={v.title} loading="lazy" />
+                {content.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => navigate(item.type === 'video' ? `/video/${item.id}` : `/photo/${item.id}`)}
+                    className="group relative bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-50 dark:border-slate-800"
+                  >
+                    <div className={`aspect-${item.type === 'video' ? 'video' : 'square'} relative overflow-hidden bg-slate-100 dark:bg-slate-800`}>
+                      <img src={item.type === 'video' ? item.thumbnailUrl : item.imageUrl} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" alt={item.title} loading="lazy" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <div className="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30 transform scale-50 group-hover:scale-100 transition-all duration-500">
-                          <svg className="h-10 w-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                          {item.type === 'video' ? (
+                            <svg className="h-10 w-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
                         </div>
+                      </div>
+                      <div className="absolute top-3 right-3 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-white text-[8px] font-black uppercase tracking-widest border border-white/10">
+                        {item.type}
                       </div>
                     </div>
                     <div className="p-6">
-                      <p className="font-black text-xl text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 transition-colors">{v.title}</p>
+                      <p className="font-black text-xl text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 transition-colors">{item.title}</p>
                       <div className="flex justify-between items-center mt-3">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(v.createdAt).toLocaleDateString()}</p>
-                        <p className="text-xs font-black text-red-500 flex items-center gap-1">❤️ {v.likesCount || 0}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(item.createdAt).toLocaleDateString()}</p>
+                        <p className="text-xs font-black text-red-500 flex items-center gap-1">❤️ {item.likesCount || 0}</p>
                       </div>
                     </div>
                   </button>
@@ -289,6 +326,11 @@ function Profile() {
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Display Name</label>
                   <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-100 dark:border-slate-800 focus:border-indigo-500 outline-none font-bold text-slate-800 dark:text-slate-100 transition-all shadow-inner text-sm sm:text-base" placeholder="Your Name" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Bio / About</label>
+                  <textarea rows={3} value={editBio} onChange={(e) => setEditBio(e.target.value)} className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-100 dark:border-slate-800 focus:border-indigo-500 outline-none font-bold text-slate-800 dark:text-slate-100 transition-all shadow-inner text-sm sm:text-base resize-none" placeholder="Tell the world about yourself..." maxLength={150} />
                 </div>
 
                 <div className="space-y-2">

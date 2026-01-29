@@ -51,9 +51,7 @@ const Footer = () => {
           {/* Brand & Social */}
           <div className="lg:col-span-4 space-y-10">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-600/30">
-                <FaPlayCircle size={24} />
-              </div>
+              
               <span className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter">MediaX</span>
             </div>
 

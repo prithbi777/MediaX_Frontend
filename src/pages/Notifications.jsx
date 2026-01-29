@@ -61,6 +61,8 @@ const Notifications = () => {
         switch (type) {
             case 'video_like': return <FaHeart className="text-pink-500" />
             case 'video_comment': return <FaComment className="text-blue-500" />
+            case 'photo_like': return <FaHeart className="text-purple-500" />
+            case 'photo_comment': return <FaComment className="text-purple-500" />
             case 'comment_like': return <FaHeart className="text-rose-500" size={12} />
             case 'following_upload': return <FaCloudUploadAlt className="text-indigo-500" />
             case 'new_follower': return <FaUserPlus className="text-emerald-500" />
@@ -73,8 +75,10 @@ const Notifications = () => {
         switch (notification.type) {
             case 'video_like': return <span><b>{senderName}</b> liked your video</span>
             case 'video_comment': return <span><b>{senderName}</b> commented on your video</span>
+            case 'photo_like': return <span><b>{senderName}</b> liked your photo</span>
+            case 'photo_comment': return <span><b>{senderName}</b> commented on your photo</span>
             case 'comment_like': return <span><b>{senderName}</b> liked your comment</span>
-            case 'following_upload': return <span><b>{senderName}</b> uploaded a new video</span>
+            case 'following_upload': return <span><b>{senderName}</b> uploaded a new media</span>
             case 'new_follower': return <span><b>{senderName}</b> started following you</span>
             default: return <span>New interaction from <b>{senderName}</b></span>
         }
@@ -84,6 +88,8 @@ const Notifications = () => {
         handleMarkRead(notification._id)
         if (notification.video) {
             navigate(`/video/${notification.video._id || notification.video}`)
+        } else if (notification.photo) {
+            navigate(`/photo/${notification.photo._id || notification.photo}`)
         } else if (notification.type === 'new_follower' && notification.sender) {
             navigate(`/user/${notification.sender._id || notification.sender}`)
         }
@@ -177,6 +183,12 @@ const Notifications = () => {
                             {notification.video?.thumbnailUrl && (
                                 <div className="hidden sm:block w-20 h-14 rounded-xl overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
                                     <img src={notification.video.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                                </div>
+                            )}
+
+                            {notification.photo?.imageUrl && (
+                                <div className="hidden sm:block w-20 h-14 rounded-xl overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
+                                    <img src={notification.photo.imageUrl} alt="" className="w-full h-full object-cover" />
                                 </div>
                             )}
 

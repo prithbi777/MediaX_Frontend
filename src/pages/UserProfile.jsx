@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { userAPI, videosAPI } from '../services/api'
+import { userAPI, videosAPI, photosAPI } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 function UserProfile() {
@@ -9,12 +9,12 @@ function UserProfile() {
   const navigate = useNavigate()
 
   const [user, setUser] = useState(null)
-  const [videos, setVideos] = useState([])
+  const [content, setContent] = useState([]) // Combined videos and photos
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isFollowing, setIsFollowing] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState('videos') // 'videos', 'followers', 'following'
+  const [activeTab, setActiveTab] = useState('contents') // 'contents', 'followers', 'following'
 
   const fetchUserProfile = async () => {
     setError('')
@@ -29,8 +29,24 @@ function UserProfile() {
         if (!v.uploadedBy) return false
         const uploadedById = v.uploadedBy._id || (typeof v.uploadedBy === 'string' ? v.uploadedBy : null)
         return uploadedById === userId
-      })
-      setVideos(userVideos)
+      }).map(v => ({ ...v, type: 'video' }))
+
+      // Fetch user's photos
+      let userPhotos = []
+      try {
+        const photosRes = await photosAPI.list()
+        userPhotos = photosRes.photos.filter(p => {
+          if (!p.uploadedBy) return false
+          const uploadedById = p.uploadedBy._id || (typeof p.uploadedBy === 'string' ? p.uploadedBy : null)
+          return uploadedById === userId
+        }).map(p => ({ ...p, type: 'photo', title: p.caption || 'Photo' }))
+      } catch (err) {
+        console.error("Failed to fetch photos", err)
+      }
+
+      // Combine and sort by createdAt desc
+      const allContent = [...userVideos, ...userPhotos].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      setContent(allContent)
 
       // Fetch follow status if logged in and not viewing own profile
       if (currentUser && currentUser.id !== userId) {
@@ -232,8 +248,8 @@ function UserProfile() {
 
               <div className="grid grid-cols-3 gap-2 sm:gap-12 mb-8 px-2 sm:px-0">
                 <button onClick={() => setActiveTab('videos')} className="flex flex-col items-center md:items-start group min-w-0">
-                  <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user.videoCount || 0}</span>
-                  <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Videos</span>
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{(user.videoCount || 0) + (user.photoCount || 0)}</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-tighter sm:tracking-widest truncate w-full text-center md:text-left">Contents</span>
                 </button>
                 <button onClick={() => setActiveTab('followers')} className="flex flex-col items-center md:items-start group min-w-0">
                   <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{user.followersCount || 0}</span>
@@ -264,7 +280,7 @@ function UserProfile() {
       <div className="space-y-6">
         {/* Navigation Tabs */}
         <div className="flex justify-start sm:justify-center gap-6 sm:gap-8 border-b border-slate-200 dark:border-slate-800 overflow-x-auto no-scrollbar scroll-smooth">
-          {['videos', 'followers', 'following'].map((tab) => (
+          {['contents', 'followers', 'following'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -282,37 +298,47 @@ function UserProfile() {
         </div>
 
         <div className="pt-4">
-          {activeTab === 'videos' && (
-            videos.length === 0 ? (
+          {activeTab === 'contents' && (
+            content.length === 0 ? (
               <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-                <p className="text-xl font-bold text-slate-400">This creator hasn't posted any videos yet.</p>
+                <p className="text-xl font-bold text-slate-400">This creator hasn't posted any content yet.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {videos.map((v) => (
+                {content.map((item) => (
                   <button
-                    key={v.id}
-                    onClick={() => navigate(`/video/${v.id}`)}
+                    key={item.id}
+                    onClick={() => navigate(item.type === 'video' ? `/video/${item.id}` : `/photo/${item.id}`)}
                     className="group relative text-left bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-slate-100 dark:border-slate-800"
                   >
-                    <div className="aspect-video bg-slate-100 dark:bg-slate-800 relative overflow-hidden">
+                    <div className={`aspect-${item.type === 'video' ? 'video' : 'square'} bg-slate-100 dark:bg-slate-800 relative overflow-hidden`}>
                       <img
-                        src={v.thumbnailUrl}
-                        alt={v.title}
+                        src={item.type === 'video' ? item.thumbnailUrl : item.imageUrl}
+                        alt={item.title}
                         className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
                         loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                         <div className="bg-white/20 backdrop-blur-md p-4 rounded-full border border-white/30 transform scale-75 group-hover:scale-100 transition-transform duration-500">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
+                          {item.type === 'video' ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          )}
                         </div>
+                      </div>
+                      {/* Badge for Type */}
+                      <div className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-black/50 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-white border border-white/10">
+                        {item.type}
                       </div>
                     </div>
                     <div className="p-5">
-                      <p className="font-black text-lg text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{v.title}</p>
-                      <p className="text-xs font-bold text-slate-400 uppercase mt-2">{new Date(v.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                      <p className="font-black text-lg text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{item.title}</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase mt-2">{new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                     </div>
                   </button>
                 ))}

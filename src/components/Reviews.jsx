@@ -3,7 +3,7 @@ import { FaHeart, FaRegHeart, FaEdit, FaTrash, FaUserCircle } from 'react-icons/
 import { useAuth } from '../context/AuthContext'
 import { reviewsAPI } from '../services/api'
 
-const Reviews = ({ videoId }) => {
+const Reviews = ({ videoId, photoId }) => {
   const { user, token } = useAuth()
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,16 +15,18 @@ const Reviews = ({ videoId }) => {
   const [deletingId, setDeletingId] = useState(null)
 
   useEffect(() => {
-    if (videoId) {
+    if (videoId || photoId) {
       fetchReviews()
     }
-  }, [videoId])
+  }, [videoId, photoId])
 
   const fetchReviews = async () => {
     setLoading(true)
     setError('')
     try {
-      const res = await reviewsAPI.getVideoReviews(videoId)
+      const res = photoId
+        ? await reviewsAPI.getPhotoReviews(photoId)
+        : await reviewsAPI.getVideoReviews(videoId)
       setReviews(res.reviews || [])
     } catch (e) {
       setError(e.message || 'Failed to load reviews')
@@ -39,7 +41,9 @@ const Reviews = ({ videoId }) => {
 
     setSubmitting(true)
     try {
-      const res = await reviewsAPI.createReview(videoId, comment.trim())
+      const res = photoId
+        ? await reviewsAPI.createPhotoReview(photoId, comment.trim())
+        : await reviewsAPI.createReview(videoId, comment.trim())
       setReviews([res.review, ...reviews])
       setComment('')
     } catch (error) {
@@ -239,11 +243,10 @@ const Reviews = ({ videoId }) => {
                       type="button"
                       onClick={() => handleLikeReview(review.id)}
                       disabled={!token}
-                      className={`flex items-center gap-1 text-sm transition-colors ${
-                        isReviewLiked(review)
+                      className={`flex items-center gap-1 text-sm transition-colors ${isReviewLiked(review)
                           ? 'text-red-600 dark:text-red-400'
                           : 'text-gray-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400'
-                      } ${!token ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        } ${!token ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {isReviewLiked(review) ? <FaHeart size={14} /> : <FaRegHeart size={14} />}
                       <span>{review.likesCount || 0}</span>

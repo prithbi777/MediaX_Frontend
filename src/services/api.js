@@ -195,6 +195,80 @@ export const videosAPI = {
 };
 
 /* ===============================
+  PHOTO APIs
+  =============================== */
+
+export const photosAPI = {
+  getPhoto: (id) =>
+    apiRequest(`/photos/${id}`, {
+      method: 'GET',
+    }),
+
+  list: (search = '') => {
+    const query = search ? `?search=${encodeURIComponent(search)}` : '';
+    return apiRequest(`/photos${query}`, {
+      method: 'GET',
+    });
+  },
+
+  like: (id) =>
+    apiRequest(`/photos/${id}/like`, {
+      method: 'POST',
+    }),
+
+  remove: (id) =>
+    apiRequest(`/photos/${id}`, {
+      method: 'DELETE',
+    }),
+
+  updateCaption: (id, caption) =>
+    apiRequest(`/photos/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ caption }),
+    }),
+
+  upload: ({ caption, file, onProgress }) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('caption', caption);
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const token = getToken();
+
+      xhr.open('POST', `${API_BASE_URL}/photos`);
+      if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable && onProgress) {
+          onProgress((e.loaded / e.total) * 100);
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response);
+          } catch (e) {
+            reject(new Error('Invalid JSON response'));
+          }
+        } else {
+          try {
+            const err = JSON.parse(xhr.responseText);
+            reject(new Error(err.message || 'Upload failed'));
+          } catch {
+            reject(new Error('Upload failed'));
+          }
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network error'));
+      xhr.send(formData);
+    });
+  }
+};
+/* ===============================
    AUTH APIs
    =============================== */
 
@@ -266,10 +340,10 @@ export const userAPI = {
     });
   },
 
-  updateMe: ({ name, dob }) =>
+  updateMe: ({ name, dob, bio }) =>
     apiRequest('/users/me', {
       method: 'PUT',
-      body: JSON.stringify({ name, dob }),
+      body: JSON.stringify({ name, dob, bio }),
     }),
 
   deleteMe: () =>
@@ -351,6 +425,17 @@ export const reviewsAPI = {
   getVideoLikeStatus: (videoId) =>
     apiRequest(`/reviews/video/${videoId}/like-status`, {
       method: 'GET',
+    }),
+
+  getPhotoReviews: (photoId) =>
+    apiRequest(`/reviews/photo/${photoId}`, {
+      method: 'GET',
+    }),
+
+  createPhotoReview: (photoId, comment) =>
+    apiRequest(`/reviews/photo/${photoId}`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
     }),
 };
 

@@ -14,6 +14,7 @@ import ManageMedia from './pages/ManageMedia'
 import MyVideos from './pages/MyVideos'
 import UserProfile from './pages/UserProfile'
 import VideoPage from './pages/VideoPage'
+import PhotoPage from './pages/PhotoPage'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import Notifications from './pages/Notifications'
@@ -107,6 +108,11 @@ function App() {
             <Route
               path="/video/:videoId"
               element={<VideoPage />}
+            />
+
+            <Route
+              path="/photo/:photoId"
+              element={<PhotoPage />}
             />
 
             <Route
